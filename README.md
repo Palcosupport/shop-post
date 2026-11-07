@@ -49,7 +49,7 @@ Revisa las condiciones de uso de cada web antes de publicar la app.
 2. En *Settings → Pages*: *Deploy from a branch*, rama `main`, carpeta `/docs`.
 3. En *Settings → Actions → General → Workflow permissions*: *Read and write permissions*.
 4. En *Actions → Actualizar precios → Run workflow* lánzalo la primera vez (tarda una hora aprox.; luego corre cada día a las 04:30 UTC).
-5. Los datos quedarán en `https://<usuario>.github.io/<repo>/data/`. Pon esa URL en
+5. Los datos quedarán en `https://<usuario>.github.io/<repo>/data/`. La app ya apunta a `https://palcosupport.github.io/shop-post/data/`; si cambias de repositorio, cámbiala en
    `CatalogService.defaultDataURL` (`ShopPost/Services/CatalogService.swift`) o en la app, *Ajustes → Datos de precios*.
 
 Prueba local:

@@ -8,7 +8,7 @@ final class CatalogService {
     static let shared = CatalogService()
 
     /// URL pública de los datos. Se puede cambiar en Ajustes.
-    static let defaultDataURL = "https://ivanguisande.github.io/shop-post/data/"
+    static let defaultDataURL = "https://palcosupport.github.io/shop-post/data/"
 
     enum LoadState: Equatable { case idle, loading, loaded, failed(String) }
 
