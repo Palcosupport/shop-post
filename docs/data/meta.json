@@ -1,6 +1,6 @@
 {
  "version": 1,
- "updatedAt": "2026-11-07T19:13:41.039582+00:00",
+ "updatedAt": "2026-11-07T19:36:49.387963+00:00",
  "baseline": {
   "mercadona": "2026-11-07",
   "consum": "2026-11-07",
@@ -15,9 +15,9 @@
    "web": "https://tienda.mercadona.es",
    "status": "ok",
    "count": 4355,
-   "updatedAt": "2026-11-07T18:48:29.537521+00:00",
-   "checkedAt": "2026-11-07T18:48:29.537521+00:00",
-   "seconds": 955.4
+   "updatedAt": "2026-11-07T19:36:49.387963+00:00",
+   "checkedAt": "2026-11-07T19:36:49.387963+00:00",
+   "seconds": 953.2
   },
   {
    "id": "consum",
@@ -26,20 +26,21 @@
    "web": "https://tienda.consum.es",
    "status": "ok",
    "count": 9315,
-   "updatedAt": "2026-11-07T19:13:41.039582+00:00",
-   "checkedAt": "2026-11-07T19:13:41.039582+00:00",
-   "seconds": 85.4
+   "updatedAt": "2026-11-07T19:36:49.387963+00:00",
+   "checkedAt": "2026-11-07T19:36:49.387963+00:00",
+   "seconds": 119.8
   },
   {
    "id": "eroski",
    "name": "Eroski",
    "color": "#E30613",
    "web": "https://supermercado.eroski.es",
-   "status": "ok",
+   "status": "error",
    "count": 24499,
    "updatedAt": "2026-11-07T19:13:39.947454+00:00",
-   "checkedAt": "2026-11-07T19:13:39.947454+00:00",
-   "seconds": 0.1
+   "checkedAt": "2026-11-07T19:36:49.387963+00:00",
+   "seconds": 0.1,
+   "error": "HTTP Error 403: Forbidden"
   },
   {
    "id": "lidl",
@@ -48,9 +49,9 @@
    "web": "https://www.lidl.es",
    "status": "ok",
    "count": 221,
-   "updatedAt": "2026-11-07T18:48:29.537521+00:00",
-   "checkedAt": "2026-11-07T18:48:29.537521+00:00",
-   "seconds": 310.6
+   "updatedAt": "2026-11-07T19:36:49.387963+00:00",
+   "checkedAt": "2026-11-07T19:36:49.387963+00:00",
+   "seconds": 264.7
   }
  ],
  "categories": [
