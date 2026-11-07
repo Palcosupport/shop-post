@@ -32,7 +32,7 @@ Funciones inspiradas en QuéFalta e interfaz inspirada en Closet AI, con nombre,
 | Mercadona | Funciona (API pública de tienda.mercadona.es) | 4.350 |
 | Consum | Funciona (API pública de tienda.consum.es) | 9.300 |
 | Lidl | Funciona, pero lidl.es solo muestra unos 220 productos de alimentación (ofertas y gamas fijas) | 220 |
-| Eroski | Funciona (páginas públicas de supermercado.eroski.es); sin código de barras | 24.500 |
+| Eroski | Funciona desde el Mac (bloquea a GitHub Actions); sin código de barras | 24.500 |
 | Dia | Bloqueado por Akamai (HTTP 403): desactivado | — |
 | Alcampo | La API responde, pero AWS WAF bloquea tras 5–6 peticiones: desactivado | — |
 | Carrefour | Bloqueado por Cloudflare: desactivado | — |
@@ -58,6 +58,17 @@ Prueba local:
 python3 server/run.py --limit 100 mercadona consum   # rápido
 python3 server/run.py                                # completo
 cd docs && python3 -m http.server 8765               # el simulador lee http://localhost:8765/data/
+```
+
+### Eroski desde el Mac
+
+Eroski rechaza los servidores de GitHub (HTTP 403), así que se lee desde este Mac cada día a las 09:00
+con `scripts/eroski-mac.sh` (launchd: `~/Library/LaunchAgents/com.shoppost.eroski.plist`). Usa una copia del
+repositorio en `~/Library/Application Support/ShopPost/repo` y la sesión de GitHub CLI de la cuenta Palcosupport.
+Registro: `/tmp/shoppost-eroski.log`. Para desactivarlo:
+
+```bash
+launchctl bootout gui/$(id -u)/com.shoppost.eroski
 ```
 
 ### 2. App (Xcode)

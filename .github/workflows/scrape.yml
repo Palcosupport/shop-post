@@ -24,7 +24,8 @@ jobs:
       - name: Instalar dependencias
         run: pip install -r server/requirements.txt
       - name: Leer catálogos
-        run: python server/run.py
+        # Eroski bloquea los servidores de GitHub (HTTP 403): se actualiza desde el Mac (scripts/eroski-mac.sh).
+        run: python server/run.py mercadona consum lidl
       - name: Publicar
         run: |
           git config user.name "shop-post-bot"

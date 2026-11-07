@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.shoppost.eroski</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/bash</string>
+		<string>-c</string>
+		<string>exec "$HOME/Library/Application Support/ShopPost/repo/scripts/eroski-mac.sh"</string>
+	</array>
+	<!-- Cada día a las 09:00 (después de la actualización de GitHub de las 05:30).
+	     Si el Mac está dormido a esa hora, se ejecuta al despertar. -->
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Hour</key>
+		<integer>9</integer>
+		<key>Minute</key>
+		<integer>0</integer>
+	</dict>
+	<key>StandardOutPath</key>
+	<string>/tmp/shoppost-eroski.log</string>
+	<key>StandardErrorPath</key>
+	<string>/tmp/shoppost-eroski.log</string>
+	<key>ProcessType</key>
+	<string>Background</string>
+	<key>LowPriorityIO</key>
+	<true/>
+</dict>
+</plist>
