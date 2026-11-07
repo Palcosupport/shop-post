@@ -1,0 +1,138 @@
+{
+ "version": 1,
+ "updatedAt": "2026-11-07T19:13:41.039582+00:00",
+ "baseline": {
+  "mercadona": "2026-11-07",
+  "consum": "2026-11-07",
+  "lidl": "2026-11-07",
+  "eroski": "2026-11-07"
+ },
+ "stores": [
+  {
+   "id": "mercadona",
+   "name": "Mercadona",
+   "color": "#00A650",
+   "web": "https://tienda.mercadona.es",
+   "status": "ok",
+   "count": 4355,
+   "updatedAt": "2026-11-07T18:48:29.537521+00:00",
+   "checkedAt": "2026-11-07T18:48:29.537521+00:00",
+   "seconds": 955.4
+  },
+  {
+   "id": "consum",
+   "name": "Consum",
+   "color": "#FF6A13",
+   "web": "https://tienda.consum.es",
+   "status": "ok",
+   "count": 9315,
+   "updatedAt": "2026-11-07T19:13:41.039582+00:00",
+   "checkedAt": "2026-11-07T19:13:41.039582+00:00",
+   "seconds": 85.4
+  },
+  {
+   "id": "eroski",
+   "name": "Eroski",
+   "color": "#E30613",
+   "web": "https://supermercado.eroski.es",
+   "status": "ok",
+   "count": 24499,
+   "updatedAt": "2026-11-07T19:13:39.947454+00:00",
+   "checkedAt": "2026-11-07T19:13:39.947454+00:00",
+   "seconds": 0.1
+  },
+  {
+   "id": "lidl",
+   "name": "Lidl",
+   "color": "#0050AA",
+   "web": "https://www.lidl.es",
+   "status": "ok",
+   "count": 221,
+   "updatedAt": "2026-11-07T18:48:29.537521+00:00",
+   "checkedAt": "2026-11-07T18:48:29.537521+00:00",
+   "seconds": 310.6
+  }
+ ],
+ "categories": [
+  {
+   "id": "fruta-verdura",
+   "name": "Fruta y verdura",
+   "emoji": "🥦"
+  },
+  {
+   "id": "carne",
+   "name": "Carne",
+   "emoji": "🥩"
+  },
+  {
+   "id": "pescado",
+   "name": "Pescado y marisco",
+   "emoji": "🐟"
+  },
+  {
+   "id": "charcuteria-quesos",
+   "name": "Charcutería y quesos",
+   "emoji": "🧀"
+  },
+  {
+   "id": "lacteos-huevos",
+   "name": "Lácteos y huevos",
+   "emoji": "🥛"
+  },
+  {
+   "id": "panaderia",
+   "name": "Panadería y bollería",
+   "emoji": "🥖"
+  },
+  {
+   "id": "despensa",
+   "name": "Alimentación",
+   "emoji": "🫙"
+  },
+  {
+   "id": "congelados",
+   "name": "Congelados",
+   "emoji": "🧊"
+  },
+  {
+   "id": "bebidas",
+   "name": "Bebidas",
+   "emoji": "🥤"
+  },
+  {
+   "id": "dulces-desayuno",
+   "name": "Desayuno y dulces",
+   "emoji": "🍫"
+  },
+  {
+   "id": "preparados",
+   "name": "Platos preparados",
+   "emoji": "🍲"
+  },
+  {
+   "id": "bebe",
+   "name": "Bebé",
+   "emoji": "🍼"
+  },
+  {
+   "id": "higiene-belleza",
+   "name": "Higiene y belleza",
+   "emoji": "🧴"
+  },
+  {
+   "id": "limpieza-hogar",
+   "name": "Limpieza y hogar",
+   "emoji": "🧽"
+  },
+  {
+   "id": "mascotas",
+   "name": "Mascotas",
+   "emoji": "🐾"
+  },
+  {
+   "id": "otros",
+   "name": "Otros",
+   "emoji": "🛒"
+  }
+ ]
+}
