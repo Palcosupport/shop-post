@@ -14,22 +14,22 @@ struct RootView: View {
                 if newTab == .add { shop.showAddSheet = true } else { shop.tab = newTab }
             })
         TabView(selection: selection) {
-            Tab("Inicio", systemImage: "house", value: AppTab.home) {
+            Tab(value: AppTab.home) {
                 NavigationStack { HomeView() }
-            }
-            Tab("Catálogo", systemImage: "books.vertical", value: AppTab.catalog) {
+            } label: { tabLabel("Inicio", "circle.grid.2x2") }
+            Tab(value: AppTab.catalog) {
                 NavigationStack { CatalogView() }
-            }
-            Tab("Añadir", systemImage: "plus.circle", value: AppTab.add) {
+            } label: { tabLabel("Catálogo", "tag") }
+            Tab(value: AppTab.add) {
                 Color.spBackground
-            }
-            Tab("Cesta", systemImage: "basket", value: AppTab.basket) {
+            } label: { tabLabel("Añadir", "plus.circle") }
+            Tab(value: AppTab.basket) {
                 NavigationStack { BasketView() }
-            }
+            } label: { tabLabel("Cesta", "bag") }
             .badge(basketPending)
-            Tab("Despensa", systemImage: "cabinet", value: AppTab.pantry) {
+            Tab(value: AppTab.pantry) {
                 NavigationStack { PantryView() }
-            }
+            } label: { tabLabel("Despensa", "archivebox") }
         }
         .overlay(alignment: .top) {
             if let toast = shop.toast {
@@ -49,6 +49,15 @@ struct RootView: View {
         .task {
             shop.ensureDefaultGroup()
             await catalog.bootstrap()
+        }
+    }
+
+    /// Icono de línea (sin relleno): la barra de pestañas de iOS los rellena por defecto.
+    private func tabLabel(_ title: String, _ symbol: String) -> some View {
+        Label {
+            Text(title)
+        } icon: {
+            Image(systemName: symbol).environment(\.symbolVariants, .none)
         }
     }
 
