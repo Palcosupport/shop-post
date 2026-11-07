@@ -133,6 +133,13 @@ final class Persistence {
             let store = self.container.persistentStoreCoordinator.persistentStore(for: url)
             if url.lastPathComponent == "ShopPost-shared.sqlite" { self.sharedStore = store } else { self.privateStore = store }
         }
+        #if DEBUG
+        // Crea el esquema de CloudKit (entorno de desarrollo) al ejecutar desde Xcode en un iPhone con iCloud.
+        // Después hay que desplegarlo a producción en CloudKit Console para TestFlight / App Store.
+        if cloudEnabled, ProcessInfo.processInfo.environment["SHOPPOST_INIT_CLOUDKIT_SCHEMA"] == "1" {
+            do { try container.initializeCloudKitSchema(options: []) } catch { print("Esquema CloudKit:", error) }
+        }
+        #endif
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         container.viewContext.transactionAuthor = "app"
