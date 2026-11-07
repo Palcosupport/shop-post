@@ -8,10 +8,10 @@ struct ProductCard: View {
     var showStore = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 6) {
             Button { shop.presentedProduct = product } label: {
                 ZStack(alignment: .topLeading) {
-                    ProductImage(url: product.imageURL, padding: 16, placeholderEmoji: catalog.category(product.cat)?.emoji ?? "🛒")
+                    ProductImage(url: product.imageURL, padding: 12, placeholderEmoji: catalog.category(product.cat)?.emoji ?? "🛒")
                         .frame(maxWidth: .infinity)
                         .aspectRatio(1, contentMode: .fit)
                         .background(Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.tile, style: .continuous))
@@ -20,10 +20,10 @@ struct ProductCard: View {
                             Badge(text: badge.0, color: badge.1, soft: badge.2)
                         }
                     }
-                    .padding(10)
+                    .padding(8)
                     if showStore {
-                        StoreBadge(storeId: product.store, size: 24)
-                            .padding(10)
+                        StoreBadge(storeId: product.store, size: 20)
+                            .padding(8)
                             .frame(maxWidth: .infinity, alignment: .topTrailing)
                     }
                 }
@@ -32,21 +32,21 @@ struct ProductCard: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(product.name)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.subheadline.weight(.medium))
                     .lineLimit(2, reservesSpace: true)
                     .foregroundStyle(Color.spInk)
                 Text(product.subtitle.isEmpty ? (product.brand ?? " ") : product.subtitle)
-                    .font(.spCaption).foregroundStyle(Color.spSecondary).lineLimit(1)
+                    .font(.caption).foregroundStyle(Color.spSecondary).lineLimit(1)
             }
-            .padding(.horizontal, 4)
+            .padding(.horizontal, 2)
             .onTapGesture { shop.presentedProduct = product }
 
             HStack(alignment: .center) {
-                PriceLabel(price: product.price, strike: product.strikePrice, size: 17)
+                PriceLabel(price: product.price, strike: product.strikePrice, size: 15)
                 Spacer(minLength: 4)
                 QuantityControl(quantity: shop.quantity(of: product.id), compact: true) { shop.setQuantity(product, $0) }
             }
-            .padding(.horizontal, 4)
+            .padding(.horizontal, 2)
         }
         .contextMenu { ProductMenu(product: product) }
     }
@@ -68,12 +68,12 @@ struct ProductRow: View {
     var showStore = false
 
     var body: some View {
-        HStack(spacing: 14) {
-            Thumb(url: product.imageURL, size: 72, emoji: catalog.category(product.cat)?.emoji ?? "🛒")
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(spacing: 12) {
+            Thumb(url: product.imageURL, size: 56, emoji: catalog.category(product.cat)?.emoji ?? "🛒")
+            VStack(alignment: .leading, spacing: 2) {
                 if showStore { StoreName(storeId: product.store) }
-                Text(product.name).font(.system(size: 15, weight: .semibold)).lineLimit(2)
-                PriceLabel(price: product.price, strike: product.strikePrice, size: 16)
+                Text(product.name).font(.subheadline.weight(.medium)).lineLimit(2)
+                PriceLabel(price: product.price, strike: product.strikePrice, size: 15)
                 if !product.subtitle.isEmpty {
                     Text(product.subtitle).font(.spCaption).foregroundStyle(Color.spSecondary).lineLimit(1)
                 }
@@ -83,7 +83,7 @@ struct ProductRow: View {
             QuantityControl(quantity: shop.quantity(of: product.id), compact: true) { shop.setQuantity(product, $0) }
         }
         .foregroundStyle(Color.spInk)
-        .padding(12)
+        .padding(10)
         .background(Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.tile, style: .continuous))
         .contentShape(Rectangle())
         .onTapGesture { shop.presentedProduct = product }
@@ -117,11 +117,11 @@ struct ProductCollection: View {
 
     var body: some View {
         if grid {
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 22) {
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 16) {
                 ForEach(products) { ProductCard(product: $0, showStore: showStore) }
             }
         } else {
-            LazyVStack(spacing: 10) {
+            LazyVStack(spacing: 8) {
                 ForEach(products) { ProductRow(product: $0, showStore: showStore) }
             }
         }

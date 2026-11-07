@@ -6,11 +6,11 @@ struct BrandHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text("Shop Post")
-                .font(.system(size: 19, weight: .semibold))
-                .tracking(2.4)
+                .font(.headline)
+                .tracking(1.6)
             Text("TU LISTA DE LA COMPRA")
-                .font(.system(size: 12, weight: .regular))
-                .tracking(2.2)
+                .font(.caption2)
+                .tracking(1.6)
                 .foregroundStyle(Color.spSecondary)
         }
     }
@@ -48,7 +48,7 @@ struct SectionHeader: View {
                 Button(action: action) {
                     HStack(spacing: 4) {
                         Text(actionTitle)
-                        Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold))
+                        Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
                     }
                     .font(.spSub)
                     .foregroundStyle(Color.spSecondary)
@@ -74,7 +74,7 @@ struct SectionLinkHeader<V: Hashable>: View {
             NavigationLink(value: value) {
                 HStack(spacing: 4) {
                     Text("Ver todo")
-                    Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold))
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
                 }
                 .font(.spSub)
                 .foregroundStyle(Color.spSecondary)
@@ -89,13 +89,13 @@ struct SectionLinkHeader<V: Hashable>: View {
 struct CircleButton: View {
     let systemName: String
     var filled = false
-    var size: CGFloat = 52
+    var size: CGFloat = 36
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .font(.system(size: size * 0.38, weight: .medium))
+                .font(.system(size: size * 0.42, weight: .medium))
                 .foregroundStyle(filled ? Color.spOnInk : Color.spInk)
                 .frame(width: size, height: size)
                 .background(filled ? Color.spInk : Color.spChip, in: Circle())
@@ -118,12 +118,12 @@ struct PrimaryButton: View {
                 if let systemName { Image(systemName: systemName) }
                 Text(title)
             }
-            .font(.system(size: 17, weight: .medium))
+            .font(.body.weight(.semibold))
             .foregroundStyle(style == .dark ? Color.spOnInk : Color.spInk)
             .frame(maxWidth: .infinity)
-            .frame(height: 56)
+            .frame(minHeight: 50)
             .background(style == .dark ? Color.spInk : Color.spCardStrong,
-                        in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .buttonStyle(PressableStyle())
     }
@@ -152,10 +152,10 @@ struct Chip: View {
                 if let icon { Text(icon) }
                 Text(title).lineLimit(1)
             }
-            .font(.system(size: 16, weight: .regular))
+            .font(.subheadline.weight(selected ? .semibold : .regular))
             .foregroundStyle(selected ? Color.spOnInk : Color.spInk)
-            .padding(.horizontal, 20)
-            .frame(height: 42)
+            .padding(.horizontal, 14)
+            .frame(minHeight: 34)
             .background(selected ? Color.spInk : Color.spChip, in: Capsule())
         }
         .buttonStyle(PressableStyle())
@@ -168,7 +168,7 @@ struct ChipBar<ID: Hashable>: View {
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 ForEach(items, id: \.id) { item in
                     Chip(title: item.title, selected: selection == item.id, icon: item.icon) {
                         withAnimation(.snappy) { selection = item.id }
@@ -176,10 +176,10 @@ struct ChipBar<ID: Hashable>: View {
                     }
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 16)
         }
         .scrollClipDisabled()
-        .padding(.horizontal, -20)
+        .padding(.horizontal, -16)
     }
 }
 
@@ -194,16 +194,16 @@ struct OptionRow: View {
     var trailing: String? = nil
 
     var body: some View {
-        HStack(spacing: 18) {
+        HStack(spacing: 14) {
             Image(systemName: icon)
-                .font(.system(size: 21, weight: .regular))
+                .font(.body)
                 .foregroundStyle(tint)
-                .frame(width: circled ? 56 : 30, height: circled ? 56 : 30)
+                .frame(width: circled ? 36 : 24, height: circled ? 36 : 24)
                 .background { if circled { Circle().fill(Color.spSurface) } }
             VStack(alignment: .leading, spacing: 3) {
-                Text(title).font(.spHeadline).foregroundStyle(Color.spInk)
+                Text(title).font(.body).foregroundStyle(Color.spInk)
                 if let subtitle {
-                    Text(subtitle).font(.spSub).foregroundStyle(Color.spSecondary).lineLimit(2)
+                    Text(subtitle).font(.footnote).foregroundStyle(Color.spSecondary).lineLimit(2)
                 }
             }
             Spacer(minLength: 8)
@@ -211,11 +211,11 @@ struct OptionRow: View {
                 Text(trailing).font(.spSub.weight(.medium)).foregroundStyle(Color.spSecondary)
             }
             Image(systemName: "chevron.right")
-                .font(.system(size: 15, weight: .semibold))
+                .font(.footnote.weight(.semibold))
                 .foregroundStyle(Color.spTertiary)
         }
-        .padding(.horizontal, circled ? 18 : 22)
-        .padding(.vertical, circled ? 16 : 22)
+        .padding(.horizontal, 14)
+        .padding(.vertical, circled ? 10 : 13)
         .background(Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.card, style: .continuous))
         .contentShape(Rectangle())
     }
@@ -229,16 +229,16 @@ struct StatTile: View {
     let label: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Image(systemName: icon).font(.system(size: 21)).foregroundStyle(Color.spInk)
-            Text(value).font(.system(size: 22, weight: .semibold)).foregroundStyle(Color.spInk)
+        VStack(alignment: .leading, spacing: 4) {
+            Image(systemName: icon).font(.body).foregroundStyle(Color.spInk)
+            Text(value).font(.title3.weight(.semibold)).foregroundStyle(Color.spInk)
                 .lineLimit(1).minimumScaleFactor(0.6)
             Text(label).font(.spCaption).foregroundStyle(Color.spSecondary).lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, minHeight: 118, alignment: .topLeading)
-        .padding(16)
+        .frame(maxWidth: .infinity, minHeight: 76, alignment: .topLeading)
+        .padding(12)
         .background(Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.tile, style: .continuous))
     }
 }
@@ -253,7 +253,7 @@ struct ProgressLine: View {
                 Capsule().fill(Color.spInk).frame(width: max(0, min(1, value)) * geo.size.width)
             }
         }
-        .frame(height: 6)
+        .frame(height: 4)
         .animation(.snappy, value: value)
     }
 }
@@ -266,13 +266,13 @@ struct Badge: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            if let icon { Image(systemName: icon).font(.system(size: 10, weight: .bold)) }
+            if let icon { Image(systemName: icon).font(.caption2.weight(.bold)) }
             Text(text).lineLimit(1)
         }
-        .font(.system(size: 12, weight: .semibold))
+        .font(.caption2.weight(.semibold))
         .foregroundStyle(color)
-        .padding(.horizontal, 8)
-        .frame(height: 22)
+        .padding(.horizontal, 7)
+        .frame(minHeight: 20)
         .background(soft, in: Capsule())
     }
 }
@@ -316,6 +316,11 @@ struct ProductImage: View {
     var placeholderEmoji: String = "🛒"
 
     var body: some View {
+        // Ocupa siempre todo el hueco (también mientras carga o si falla) para no descuadrar las tarjetas.
+        ZStack { Color.clear; image }
+    }
+
+    private var image: some View {
         AsyncImage(url: url, transaction: Transaction(animation: .easeOut(duration: 0.2))) { phase in
             switch phase {
             case .success(let image):
@@ -384,11 +389,11 @@ struct QuantityControl: View {
     let onChange: (Int) -> Void
 
     var body: some View {
-        let h: CGFloat = compact ? 34 : 40
+        let h: CGFloat = compact ? 28 : 32
         if quantity == 0 {
             Button { onChange(1) } label: {
                 Image(systemName: "plus")
-                    .font(.system(size: compact ? 15 : 17, weight: .semibold))
+                    .font(.system(size: compact ? 13 : 15, weight: .semibold))
                     .foregroundStyle(Color.spOnInk)
                     .frame(width: h, height: h)
                     .background(Color.spInk, in: Circle())
@@ -399,16 +404,16 @@ struct QuantityControl: View {
             HStack(spacing: 0) {
                 Button { onChange(quantity - 1) } label: {
                     Image(systemName: quantity == 1 ? "trash" : "minus")
-                        .font(.system(size: compact ? 13 : 15, weight: .semibold))
+                        .font(.system(size: compact ? 11 : 13, weight: .semibold))
                         .frame(width: h, height: h)
                 }
                 Text("\(quantity)")
-                    .font(.system(size: compact ? 15 : 17, weight: .semibold))
+                    .font(.system(size: compact ? 13 : 15, weight: .semibold))
                     .monospacedDigit()
                     .frame(minWidth: 18)
                 Button { onChange(quantity + 1) } label: {
                     Image(systemName: "plus")
-                        .font(.system(size: compact ? 13 : 15, weight: .semibold))
+                        .font(.system(size: compact ? 11 : 13, weight: .semibold))
                         .frame(width: h, height: h)
                 }
             }
@@ -428,25 +433,25 @@ struct EmptyCard: View {
     var action: (() -> Void)?
 
     var body: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 10) {
             Text(title).font(.spHeadline).multilineTextAlignment(.center)
             Text(message).font(.spSub).foregroundStyle(Color.spSecondary).multilineTextAlignment(.center)
             if let buttonTitle, let action {
                 Button(action: action) {
                     Text(buttonTitle)
-                        .font(.system(size: 17, weight: .regular))
+                        .font(.body.weight(.medium))
                         .foregroundStyle(Color.spInk)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 54)
-                        .background(Color.spCardStrong, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        .frame(minHeight: 44)
+                        .background(Color.spCardStrong, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
                 .buttonStyle(PressableStyle())
                 .padding(.top, 4)
             }
         }
-        .padding(24)
+        .padding(18)
         .frame(maxWidth: .infinity)
-        .background(Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.card + 4, style: .continuous))
+        .background(Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.card, style: .continuous))
     }
 }
 
@@ -457,76 +462,11 @@ struct Toast: View {
             Image(systemName: "checkmark.circle.fill")
             Text(text).lineLimit(1)
         }
-        .font(.system(size: 15, weight: .medium))
+        .font(.subheadline.weight(.medium))
         .foregroundStyle(Color.spOnInk)
-        .padding(.horizontal, 18)
-        .frame(height: 46)
+        .padding(.horizontal, 16)
+        .frame(minHeight: 40)
         .background(Color.spInk, in: Capsule())
         .shadow(color: .black.opacity(0.15), radius: 12, y: 6)
-    }
-}
-
-// MARK: - Barra inferior
-
-struct SPTabBar: View {
-    @Binding var selection: AppTab
-    let onAdd: () -> Void
-    var basketCount: Int = 0
-
-    var body: some View {
-        HStack(spacing: 0) {
-            item(.home, "house", "house.fill", "Inicio")
-            item(.catalog, "books.vertical", "books.vertical.fill", "Catálogo")
-            Button(action: onAdd) {
-                VStack(spacing: 4) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundStyle(Color.spOnInk)
-                        .frame(width: 56, height: 56)
-                        .background(Color.spInk, in: Circle())
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(PressableStyle())
-            .accessibilityLabel("Añadir")
-            item(.basket, "basket", "basket.fill", "Cesta", badge: basketCount)
-            item(.pantry, "cabinet", "cabinet.fill", "Despensa")
-        }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 8)
-        .glassEffect(.regular, in: Capsule())
-        .padding(.horizontal, 18)
-    }
-
-    private func item(_ tab: AppTab, _ icon: String, _ iconSel: String, _ title: String, badge: Int = 0) -> some View {
-        let selected = selection == tab
-        return Button {
-            if selection != tab { Haptics.tap() }
-            selection = tab
-        } label: {
-            VStack(spacing: 5) {
-                Image(systemName: selected ? iconSel : icon)
-                    .font(.system(size: 22, weight: selected ? .semibold : .regular))
-                    .frame(height: 28)
-                    .overlay(alignment: .topTrailing) {
-                        if badge > 0 {
-                            Text("\(badge)")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(Color.spOnInk)
-                                .padding(.horizontal, 5)
-                                .frame(minWidth: 18, minHeight: 18)
-                                .background(Color.spInk, in: Capsule())
-                                .offset(x: 12, y: -6)
-                        }
-                    }
-                Text(title)
-                    .font(.system(size: 12, weight: selected ? .semibold : .regular))
-            }
-            .foregroundStyle(selected ? Color.spInk : Color.spSecondary)
-            .frame(maxWidth: .infinity)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }

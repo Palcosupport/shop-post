@@ -95,7 +95,7 @@ final class CatalogService {
                 }
             }
             try? metaData.write(to: cacheDir.appending(path: "meta.json"), options: .atomic)
-            apply(meta: newMeta, products: loaded)
+            await apply(meta: newMeta, products: loaded)
             await loadFeedsFromCache()
             lastUpdate = Day.parseTimestamp(newMeta.updatedAt) ?? Date()
             state = .loaded
@@ -110,14 +110,21 @@ final class CatalogService {
     private func loadFromCache() async {
         guard let data = try? Data(contentsOf: cacheDir.appending(path: "meta.json")),
               let cachedMeta = try? JSONDecoder().decode(CatalogMeta.self, from: data) else { return }
-        var loaded: [String: [Product]] = [:]
-        for store in cachedMeta.stores {
-            let file = cacheDir.appending(path: "\(store.id).json")
-            if let d = try? Data(contentsOf: file), let products = try? await Self.decodeStore(d) {
-                loaded[store.id] = products
+        // Lectura y decodificación en paralelo y fuera del hilo principal (son unos 20 MB).
+        let dir = cacheDir
+        let ids = cachedMeta.stores.map(\.id)
+        let loaded = await withTaskGroup(of: (String, [Product]?).self) { group in
+            for id in ids {
+                group.addTask(priority: .userInitiated) {
+                    guard let d = try? Data(contentsOf: dir.appending(path: "\(id).json")) else { return (id, nil) }
+                    return (id, try? await Self.decodeStore(d))
+                }
             }
+            var out: [String: [Product]] = [:]
+            for await (id, products) in group { if let products { out[id] = products } }
+            return out
         }
-        apply(meta: cachedMeta, products: loaded)
+        await apply(meta: cachedMeta, products: loaded)
         await loadFeedsFromCache()
         lastUpdate = Day.parseTimestamp(cachedMeta.updatedAt)
         if !loaded.isEmpty { state = .loaded }
@@ -136,22 +143,32 @@ final class CatalogService {
         newProducts = await feed("new")
     }
 
-    private func apply(meta: CatalogMeta, products: [String: [Product]]) {
+    private func apply(meta: CatalogMeta, products: [String: [Product]]) async {
+        // Los índices se construyen en segundo plano; luego se publican de una vez.
+        let index = await Task.detached(priority: .userInitiated) { () -> ([String: Product], [String: [Product]], [Product]) in
+            var ids: [String: Product] = [:]
+            var eans: [String: [Product]] = [:]
+            ids.reserveCapacity(products.values.reduce(0) { $0 + $1.count })
+            for list in products.values {
+                for p in list {
+                    ids[p.id] = p
+                    if let e = p.ean, !e.isEmpty { eans[CatalogService.normalizeEAN(e), default: []].append(p) }
+                }
+            }
+            func off(_ p: Product) -> Double {
+                guard let prev = p.previousPrice, prev > 0 else { return 0 }
+                return (prev - p.price) / prev
+            }
+            let offers = products.values.flatMap { $0.filter(\.isOnOffer) }.sorted { off($0) > off($1) }
+            return (ids, eans, offers)
+        }.value
         self.meta = meta
         stores = meta.stores
         categories = meta.categories
         productsByStore = products
-        var ids: [String: Product] = [:]
-        var eans: [String: [Product]] = [:]
-        for list in products.values {
-            for p in list {
-                ids[p.id] = p
-                if let e = p.ean, !e.isEmpty { eans[Self.normalizeEAN(e), default: []].append(p) }
-            }
-        }
-        byId = ids
-        byEAN = eans
-        offerList = products.values.flatMap { $0.filter(\.isOnOffer) }.sorted { discount($0) > discount($1) }
+        byId = index.0
+        byEAN = index.1
+        offerList = index.2
     }
 
     nonisolated private static func decodeStore(_ data: Data) async throws -> [Product] {
@@ -177,7 +194,7 @@ final class CatalogService {
         return data
     }
 
-    static func normalizeEAN(_ s: String) -> String {
+    nonisolated static func normalizeEAN(_ s: String) -> String {
         let digits = s.filter(\.isNumber)
         return digits.count == 13 && digits.hasPrefix("0") ? String(digits.dropFirst()) : digits
     }

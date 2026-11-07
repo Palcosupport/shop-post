@@ -39,28 +39,29 @@ extension Color {
     }
 }
 
-/// Alto que ocupa la barra inferior flotante (las pantallas dejan este margen abajo).
-let tabBarClearance: CGFloat = 96
+/// Margen inferior de las pantallas (la barra de pestañas nativa ya reserva su sitio).
+let tabBarClearance: CGFloat = 20
 
 enum SPRadius {
-    static let card: CGFloat = 26
-    static let tile: CGFloat = 22
-    static let small: CGFloat = 16
+    static let card: CGFloat = 20
+    static let tile: CGFloat = 16
+    static let small: CGFloat = 12
 }
 
 extension Font {
-    static let spLargeTitle = Font.system(size: 34, weight: .bold)
-    static let spTitle = Font.system(size: 26, weight: .bold)
-    static let spSection = Font.system(size: 22, weight: .semibold)
-    static let spHeadline = Font.system(size: 17, weight: .semibold)
-    static let spBody = Font.system(size: 16)
-    static let spSub = Font.system(size: 15)
-    static let spCaption = Font.system(size: 13)
+    // Estilos de texto del sistema: respetan el tamaño de letra elegido en Ajustes.
+    static let spLargeTitle = Font.largeTitle.bold()
+    static let spTitle = Font.title2.bold()
+    static let spSection = Font.title3.weight(.semibold)
+    static let spHeadline = Font.headline
+    static let spBody = Font.body
+    static let spSub = Font.subheadline
+    static let spCaption = Font.caption
 }
 
 extension View {
     /// Tarjeta gris piedra muy redondeada (estilo principal de la app).
-    func spCard(padding: CGFloat = 20, radius: CGFloat = SPRadius.card, color: Color = .spCard) -> some View {
+    func spCard(padding: CGFloat = 16, radius: CGFloat = SPRadius.card, color: Color = .spCard) -> some View {
         self.padding(padding)
             .background(color, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
     }
@@ -71,7 +72,7 @@ extension View {
 
     func spSheet() -> some View {
         self.presentationBackground(Color.spBackground)
-            .presentationCornerRadius(36)
+            .presentationCornerRadius(28)
     }
 }
 

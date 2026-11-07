@@ -7,18 +7,30 @@ struct RootView: View {
 
     var body: some View {
         @Bindable var shop = shop
-        TabView(selection: $shop.tab) {
-            Tab(value: AppTab.home) { tabContent { HomeView() } }
-            Tab(value: AppTab.catalog) { tabContent { CatalogView() } }
-            Tab(value: AppTab.basket) { tabContent { BasketView() } }
-            Tab(value: AppTab.pantry) { tabContent { PantryView() } }
+        // La pestaña «Añadir» no se queda seleccionada: abre la hoja y vuelve a la pestaña anterior.
+        let selection = Binding<AppTab>(
+            get: { shop.tab },
+            set: { newTab in
+                if newTab == .add { shop.showAddSheet = true } else { shop.tab = newTab }
+            })
+        TabView(selection: selection) {
+            Tab("Inicio", systemImage: "house", value: AppTab.home) {
+                NavigationStack { HomeView() }
+            }
+            Tab("Catálogo", systemImage: "books.vertical", value: AppTab.catalog) {
+                NavigationStack { CatalogView() }
+            }
+            Tab("Añadir", systemImage: "plus.circle", value: AppTab.add) {
+                Color.spBackground
+            }
+            Tab("Cesta", systemImage: "basket", value: AppTab.basket) {
+                NavigationStack { BasketView() }
+            }
+            .badge(basketPending)
+            Tab("Despensa", systemImage: "cabinet", value: AppTab.pantry) {
+                NavigationStack { PantryView() }
+            }
         }
-        .overlay(alignment: .bottom) {
-            SPTabBar(selection: $shop.tab, onAdd: { shop.showAddSheet = true },
-                     basketCount: basketPending)
-                .padding(.bottom, 2)
-        }
-        .ignoresSafeArea(.keyboard, edges: .bottom)
         .overlay(alignment: .top) {
             if let toast = shop.toast {
                 Toast(text: toast)
@@ -38,11 +50,6 @@ struct RootView: View {
             shop.ensureDefaultGroup()
             await catalog.bootstrap()
         }
-    }
-
-    private func tabContent<V: View>(@ViewBuilder _ content: () -> V) -> some View {
-        NavigationStack { content() }
-            .toolbarVisibility(.hidden, for: .tabBar)
     }
 
     private var basketPending: Int {

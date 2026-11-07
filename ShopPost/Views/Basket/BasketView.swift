@@ -18,8 +18,7 @@ struct BasketView: View {
         let group = shop.activeGroup
         let items = group?.itemList ?? []
         ScrollView {
-            VStack(alignment: .leading, spacing: 26) {
-                header(group, items)
+            VStack(alignment: .leading, spacing: 20) {
                 stats(group, items)
                 groupsCarousel(group)
                 if !items.isEmpty {
@@ -33,15 +32,28 @@ struct BasketView: View {
                               buttonTitle: "Añadir productos") { shop.showAddSheet = true }
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
-            .padding(.bottom, items.isEmpty ? tabBarClearance : tabBarClearance + 84)
+            .padding(.horizontal, 16)
+            .padding(.top, 4)
+            .padding(.bottom, tabBarClearance)
         }
         .scrollIndicators(.hidden)
         .spScreen()
-        .toolbarVisibility(.hidden, for: .navigationBar)
-        .overlay(alignment: .bottom) {
-            if !items.isEmpty { totalBar(items).padding(.bottom, tabBarClearance - 8) }
+        .navigationTitle("Mi cesta")
+        .navigationSubtitle("\(group?.title ?? "") · \(Count.items(items.count)) · \(Money.string(group?.total ?? 0))")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { if let group { shareGroup = group } } label: { Image(systemName: "person.badge.plus") }
+                    .accessibilityLabel("Invitar al grupo")
+            }
+            if !items.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { confirmClear = true } label: { Image(systemName: "ellipsis") }
+                        .accessibilityLabel("Más opciones")
+                }
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if !items.isEmpty { totalBar(items) }
         }
         .sheet(item: $noteItem) { x in NavigationStack { ItemNoteSheet(item: x) }.spSheet().presentationDetents([.medium, .large]) }
         .sheet(isPresented: $showCompare) { NavigationStack { CompareSheet(items: items) }.spSheet() }
@@ -54,24 +66,6 @@ struct BasketView: View {
             }
             if let group {
                 Button("Vaciar toda la cesta", role: .destructive) { shop.clearAll(in: group) }
-            }
-        }
-    }
-
-    // MARK: Cabecera
-
-    private func header(_ g: SPGroup?, _ items: [SPItem]) -> some View {
-        HStack(alignment: .top) {
-            ScreenTitle(title: "Mi cesta",
-                        subtitle: "\(g?.title ?? "") · \(Count.items(items.count)) · \(Money.string(g?.total ?? 0))")
-            HStack(spacing: 10) {
-                if !items.isEmpty {
-                    CircleButton(systemName: "ellipsis", size: 52) { confirmClear = true }
-                }
-                CircleButton(systemName: "person.badge.plus", filled: true, size: 60) {
-                    if let g { shareGroup = g }
-                }
-                .accessibilityLabel("Invitar al grupo")
             }
         }
     }
@@ -95,7 +89,7 @@ struct BasketView: View {
     // MARK: Grupos
 
     private func groupsCarousel(_ active: SPGroup?) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             SectionHeader(title: "Mis grupos")
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
@@ -108,20 +102,20 @@ struct BasketView: View {
                             }
                     }
                     Button { showNewGroup = true } label: {
-                        VStack(spacing: 10) {
-                            Image(systemName: "plus").font(.system(size: 28, weight: .light))
-                            Text("Nuevo grupo").font(.spSub)
+                        VStack(spacing: 6) {
+                            Image(systemName: "plus").font(.title3)
+                            Text("Nuevo grupo").font(.footnote)
                         }
                         .foregroundStyle(Color.spSecondary)
-                        .frame(width: 150, height: 170)
+                        .frame(width: 110, height: 104)
                         .background(Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.card, style: .continuous))
                     }
                     .buttonStyle(PressableStyle())
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 16)
             }
             .scrollClipDisabled()
-            .padding(.horizontal, -20)
+            .padding(.horizontal, -16)
         }
     }
 
@@ -129,17 +123,17 @@ struct BasketView: View {
 
     private func compareCard(_ items: [SPItem]) -> some View {
         Button { showCompare = true } label: {
-            HStack(spacing: 16) {
-                Image(systemName: "chart.bar.xaxis").font(.system(size: 22))
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("¿Dónde sale más barata?").font(.spHeadline)
-                    Text("Compara tu cesta en todos tus supermercados").font(.spSub).foregroundStyle(Color.spSecondary)
+            HStack(spacing: 12) {
+                Image(systemName: "chart.bar.xaxis").font(.body)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("¿Dónde sale más barata?").font(.body)
+                    Text("Compara tu cesta en tus supermercados").font(.footnote).foregroundStyle(Color.spSecondary)
                 }
                 Spacer()
-                Image(systemName: "chevron.right").font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.spTertiary)
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(Color.spTertiary)
             }
             .foregroundStyle(Color.spInk)
-            .spCard(padding: 20)
+            .spCard(padding: 14)
         }
         .buttonStyle(PressableStyle())
     }
@@ -154,7 +148,7 @@ struct BasketView: View {
             if b == "_none" { return true }
             return (catalog.store(a)?.name ?? a) < (catalog.store(b)?.name ?? b)
         }
-        return VStack(alignment: .leading, spacing: 22) {
+        return VStack(alignment: .leading, spacing: 16) {
             if visible.isEmpty {
                 Text(filter == "done" ? "Todavía no has recogido nada." : "¡Lo tienes todo!")
                     .font(.spSub).foregroundStyle(Color.spSecondary)
@@ -163,21 +157,21 @@ struct BasketView: View {
             ForEach(storeOrder, id: \.self) { sid in
                 let storeItems = byStore[sid] ?? []
                 let all = items.filter { ($0.store ?? "_none") == sid }
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 8) {
                     Button {
                         withAnimation(.snappy) { if collapsed.contains(sid) { collapsed.remove(sid) } else { collapsed.insert(sid) } }
                     } label: {
-                        HStack(spacing: 12) {
+                        HStack(spacing: 10) {
                             if sid == "_none" {
-                                Image(systemName: "cart").frame(width: 30, height: 30)
+                                Image(systemName: "cart").frame(width: 24, height: 24)
                             } else {
-                                StoreBadge(storeId: sid, size: 30)
+                                StoreBadge(storeId: sid, size: 24)
                             }
-                            Text(sid == "_none" ? "Sin supermercado" : (catalog.store(sid)?.name ?? sid.capitalized)).font(.spSection)
+                            Text(sid == "_none" ? "Sin supermercado" : (catalog.store(sid)?.name ?? sid.capitalized)).font(.headline)
                             Spacer()
                             Text("\(all.filter(\.checked).count)/\(all.count)").font(.spSub).foregroundStyle(Color.spSecondary).monospacedDigit()
                             Image(systemName: "chevron.down")
-                                .font(.system(size: 14, weight: .semibold))
+                                .font(.footnote.weight(.semibold))
                                 .foregroundStyle(Color.spTertiary)
                                 .rotationEffect(.degrees(collapsed.contains(sid) ? -90 : 0))
                         }
@@ -191,9 +185,9 @@ struct BasketView: View {
                         ForEach(cats, id: \.self) { cat in
                             let info = catalog.category(cat)
                             Text("\(info?.emoji ?? "🛒")  \((info?.name ?? "Otros").uppercased())")
-                                .font(.system(size: 12, weight: .semibold)).tracking(1.6)
+                                .font(.caption.weight(.semibold)).tracking(1)
                                 .foregroundStyle(Color.spSecondary)
-                                .padding(.top, 4)
+                                .padding(.top, 2)
                             ForEach(byCat[cat] ?? []) { item in
                                 BasketItemRow(item: item, onNote: { noteItem = item })
                             }
@@ -208,20 +202,20 @@ struct BasketView: View {
         let total = items.reduce(0) { $0 + $1.lineTotal }
         let pending = items.filter { !$0.checked }.reduce(0) { $0 + $1.lineTotal }
         return HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Total estimado").font(.spSub).foregroundStyle(Color.spSecondary)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Total estimado").font(.subheadline).foregroundStyle(Color.spSecondary)
                 if pending != total {
-                    Text("Falta por recoger \(Money.string(pending))").font(.spCaption).foregroundStyle(Color.spSecondary)
+                    Text("Falta por recoger \(Money.string(pending))").font(.caption).foregroundStyle(Color.spSecondary)
                 }
             }
             Spacer()
-            Text(Money.string(total)).font(.system(size: 26, weight: .bold)).monospacedDigit()
+            Text(Money.string(total)).font(.title3.bold()).monospacedDigit()
         }
-        .padding(.horizontal, 22)
-        .frame(height: 70)
-        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
-        .padding(.horizontal, 18)
-        .padding(.bottom, 10)
+        .padding(.horizontal, 16)
+        .frame(minHeight: 52)
+        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .padding(.horizontal, 16)
+        .padding(.bottom, 6)
     }
 }
 
@@ -234,25 +228,25 @@ struct GroupCard: View {
         let shared = Persistence.shared.isShared(group)
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top) {
-                Text(group.icon).font(.system(size: 44))
+                Text(group.icon).font(.title2)
                 Spacer()
                 if active {
-                    Image(systemName: "checkmark.circle.fill").font(.system(size: 22)).foregroundStyle(Color.spInk)
+                    Image(systemName: "checkmark.circle.fill").font(.body).foregroundStyle(Color.spInk)
                 }
             }
             Spacer()
-            HStack(spacing: 6) {
-                Image(systemName: shared ? "person.2" : "basket").font(.system(size: 15))
-                Text(group.title).font(.spHeadline).lineLimit(1)
+            HStack(spacing: 4) {
+                Image(systemName: shared ? "person.2" : "basket").font(.caption)
+                Text(group.title).font(.subheadline.weight(.semibold)).lineLimit(1)
             }
             Text("\(Count.items(items.count)) · \(Money.string(group.total))")
-                .font(.spCaption).foregroundStyle(Color.spSecondary).padding(.top, 6)
+                .font(.caption).foregroundStyle(Color.spSecondary).padding(.top, 2)
         }
         .foregroundStyle(Color.spInk)
-        .padding(18)
-        .frame(width: 190, height: 170, alignment: .topLeading)
+        .padding(12)
+        .frame(width: 150, height: 104, alignment: .topLeading)
         .background(Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.card, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: SPRadius.card, style: .continuous).stroke(Color.spInk, lineWidth: active ? 2 : 0))
+        .overlay(RoundedRectangle(cornerRadius: SPRadius.card, style: .continuous).stroke(Color.spInk, lineWidth: active ? 1.5 : 0))
     }
 }
 
@@ -263,23 +257,23 @@ struct BasketItemRow: View {
     let onNote: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
                 Button { withAnimation(.snappy) { shop.toggleChecked(item) } } label: {
                     Image(systemName: item.checked ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 28, weight: .light))
+                        .font(.title3.weight(.light))
                         .foregroundStyle(item.checked ? Color.spInk : Color.spTertiary)
                         .contentTransition(.symbolEffect(.replace))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(item.checked ? "Recogido" : "Marcar como recogido")
 
-                Thumb(url: item.imageURL, size: 58, emoji: catalog.category(item.cat ?? "")?.emoji ?? "🛒")
+                Thumb(url: item.imageURL, size: 44, emoji: catalog.category(item.cat ?? "")?.emoji ?? "🛒")
                     .onTapGesture { if let p = catalog.product(item.productId) { shop.presentedProduct = p } }
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(item.title)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.subheadline.weight(.medium))
                         .strikethrough(item.checked)
                         .foregroundStyle(item.checked ? Color.spSecondary : Color.spInk)
                         .lineLimit(2)
@@ -291,7 +285,7 @@ struct BasketItemRow: View {
                                 .foregroundStyle(current.price < item.price ? Color.spGreen : Color.spRed)
                         }
                     }
-                    .font(.spSub)
+                    .font(.footnote)
                 }
                 Spacer(minLength: 4)
                 Menu {
@@ -311,9 +305,9 @@ struct BasketItemRow: View {
                     Button(role: .destructive) { withAnimation { shop.delete(item) } } label: { Label("Eliminar", systemImage: "trash") }
                 } label: {
                     Image(systemName: "ellipsis")
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(.body.weight(.medium))
                         .foregroundStyle(Color.spSecondary)
-                        .frame(width: 40, height: 40)
+                        .frame(width: 32, height: 32)
                 }
             }
             if hasExtras {
@@ -331,10 +325,10 @@ struct BasketItemRow: View {
                         if item.checked, let by = item.checkedBy { Badge(text: "Recogido por \(by)", color: .spGreen, soft: .spGreenSoft) }
                     }
                 }
-                .padding(.leading, 40)
+                .padding(.leading, 32)
             }
         }
-        .padding(14)
+        .padding(10)
         .background(Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.tile, style: .continuous))
         .opacity(item.checked ? 0.75 : 1)
         .contentShape(Rectangle())

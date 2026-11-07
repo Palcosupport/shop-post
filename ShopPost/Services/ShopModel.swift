@@ -282,7 +282,7 @@ final class ShopModel {
     }
 }
 
-enum AppTab: Hashable { case home, catalog, basket, pantry }
+enum AppTab: Hashable { case home, catalog, add, basket, pantry }
 
 enum PantryPlace: String, CaseIterable, Identifiable {
     case despensa, nevera, congelador

@@ -192,7 +192,9 @@ def _product(p: Dict[str, Any], paths: Dict[int, List[str]]) -> Optional[Dict[st
         unit_price=unit_price,
         unit=_REF_UNIT.get(ref, ref.replace("1 ", "", 1) or None),
         size=size,
-        image=pd.get("imageURL") or next((m.get("url") for m in p.get("media") or []), None),
+        # "imageURL" apunta a una ruta antigua que da 404: la foto buena es la primera de "media".
+        image=next((m.get("url") for m in sorted(p.get("media") or [], key=lambda m: m.get("order") or 99)
+                    if m.get("url") and (m.get("type") in (None, "P"))), None) or pd.get("imageURL"),
         previous_price=previous,
         promo=_promo(p.get("offers") or [], bool(offer.get("centAmount"))),
         ean=ean if ean.isdigit() else None,

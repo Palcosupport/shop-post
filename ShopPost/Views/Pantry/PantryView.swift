@@ -19,25 +19,19 @@ struct PantryView: View {
         let items = shop.pantryItems(in: group, place: place.rawValue)
         let missing = shop.missingPantry(in: group)
         ScrollView {
-            VStack(alignment: .leading, spacing: 26) {
-                HStack(alignment: .top) {
-                    ScreenTitle(title: "En casa",
-                                subtitle: "\(group?.title ?? "") · \(Count.items(group?.pantryList.count ?? 0, "producto", "productos"))\(missing.isEmpty ? "" : " · faltan \(missing.count)")")
-                    CircleButton(systemName: "plus", filled: true, size: 60) { addingNew = true }
-                        .accessibilityLabel("Añadir a la despensa")
-                }
+            VStack(alignment: .leading, spacing: 20) {
                 HStack(spacing: 10) {
                     ForEach(PantryPlace.allCases) { p in
                         let count = shop.pantryItems(in: group, place: p.rawValue).count
                         Button { withAnimation(.snappy) { place = p }; Haptics.tap() } label: {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Image(systemName: p.icon).font(.system(size: 21))
-                                Text("\(count)").font(.system(size: 22, weight: .semibold))
-                                Text(p.title).font(.spCaption)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Image(systemName: p.icon).font(.body)
+                                Text("\(count)").font(.title3.weight(.semibold))
+                                Text(p.title).font(.caption)
                             }
                             .foregroundStyle(place == p ? Color.spOnInk : Color.spInk)
-                            .frame(maxWidth: .infinity, minHeight: 110, alignment: .topLeading)
-                            .padding(16)
+                            .frame(maxWidth: .infinity, minHeight: 72, alignment: .topLeading)
+                            .padding(12)
                             .background(place == p ? Color.spInk : Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.tile, style: .continuous))
                         }
                         .buttonStyle(PressableStyle())
@@ -45,9 +39,9 @@ struct PantryView: View {
                 }
 
                 if !missing.isEmpty {
-                    VStack(alignment: .leading, spacing: 14) {
+                    VStack(alignment: .leading, spacing: 10) {
                         HStack {
-                            VStack(alignment: .leading, spacing: 3) {
+                            VStack(alignment: .leading, spacing: 2) {
                                 Text("Qué falta").font(.spHeadline)
                                 Text(missing.prefix(4).compactMap(\.name).joined(separator: ", "))
                                     .font(.spSub).foregroundStyle(Color.spSecondary).lineLimit(2)
@@ -58,7 +52,7 @@ struct PantryView: View {
                             shop.moveMissingToBasket(missing)
                         }
                     }
-                    .spCard(padding: 20, radius: 30)
+                    .spCard(padding: 14)
                 }
 
                 if items.isEmpty && shelves.allSatisfy({ $0.itemList.isEmpty }) {
@@ -76,24 +70,31 @@ struct PantryView: View {
                 }
 
                 Button { shelfName = ""; newShelf = true } label: {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 6) {
                         Image(systemName: "plus")
                         Text("Añadir balda")
                     }
-                    .font(.system(size: 17, weight: .medium))
+                    .font(.subheadline.weight(.medium))
                     .foregroundStyle(Color.spInk)
-                    .frame(maxWidth: .infinity).frame(height: 56)
+                    .frame(maxWidth: .infinity).frame(minHeight: 40)
                     .background(Color.spCardStrong, in: Capsule())
                 }
                 .buttonStyle(PressableStyle())
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
+            .padding(.horizontal, 16)
+            .padding(.top, 4)
             .padding(.bottom, tabBarClearance)
         }
         .scrollIndicators(.hidden)
         .spScreen()
-        .toolbarVisibility(.hidden, for: .navigationBar)
+        .navigationTitle("En casa")
+        .navigationSubtitle("\(group?.title ?? "") · \(Count.items(group?.pantryList.count ?? 0, "producto", "productos"))\(missing.isEmpty ? "" : " · faltan \(missing.count)")")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { addingNew = true } label: { Image(systemName: "plus") }
+                    .accessibilityLabel("Añadir a la despensa")
+            }
+        }
         .sheet(isPresented: $addingNew) { NavigationStack { PantryAddView(place: place, shelf: nil) }.spSheet() }
         .sheet(item: $addingTo) { x in NavigationStack { PantryAddView(place: place, shelf: x) }.spSheet() }
         .sheet(item: $editingItem) { x in NavigationStack { PantryItemEditor(item: x) }.spSheet().presentationDetents([.medium, .large]) }
@@ -114,9 +115,9 @@ struct PantryView: View {
     }
 
     private func itemsRow(title: String, items: [SPPantryItem], shelf: SPShelf?) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text(title).font(.spSection)
+                Text(title).font(.headline)
                 Text("\(items.count)").font(.spSub).foregroundStyle(Color.spSecondary)
                 Spacer()
                 if let shelf {
@@ -127,8 +128,8 @@ struct PantryView: View {
                             Label("Eliminar balda", systemImage: "trash")
                         }
                     } label: {
-                        Image(systemName: "ellipsis").font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(Color.spSecondary).frame(width: 40, height: 32)
+                        Image(systemName: "ellipsis").font(.body.weight(.medium))
+                            .foregroundStyle(Color.spSecondary).frame(width: 32, height: 28)
                     }
                 }
             }
@@ -152,22 +153,22 @@ struct PantryView: View {
                             }
                     }
                     Button { if let shelf { addingTo = shelf } else { addingNew = true } } label: {
-                        VStack(spacing: 8) {
-                            Image(systemName: "plus").font(.system(size: 24, weight: .light))
-                            Text("Añadir").font(.spCaption)
+                        VStack(spacing: 4) {
+                            Image(systemName: "plus").font(.title3.weight(.light))
+                            Text("Añadir").font(.caption)
                         }
                         .foregroundStyle(Color.spSecondary)
-                        .frame(width: 120, height: 172)
+                        .frame(width: 84, height: 132)
                         .background(Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.tile, style: .continuous))
                     }
                     .buttonStyle(PressableStyle())
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 16)
             }
             .scrollClipDisabled()
-            .padding(.horizontal, -20)
+            .padding(.horizontal, -16)
             // Balda de madera estilizada (línea) bajo los productos.
-            Capsule().fill(Color.spCardStrong).frame(height: 6)
+            Capsule().fill(Color.spCardStrong).frame(height: 4)
         }
     }
 }
@@ -178,12 +179,12 @@ struct PantryCard: View {
     @ObservedObject var item: SPPantryItem
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ProductImage(url: item.imageURL, padding: 10, placeholderEmoji: catalog.category(item.cat ?? "")?.emoji ?? "🥫")
-                .frame(width: 112, height: 88)
+        VStack(alignment: .leading, spacing: 4) {
+            ProductImage(url: item.imageURL, padding: 6, placeholderEmoji: catalog.category(item.cat ?? "")?.emoji ?? "🥫")
+                .frame(width: 86, height: 62)
                 .saturation(item.isMissing ? 0 : 1)
                 .opacity(item.isMissing ? 0.5 : 1)
-            Text(item.name ?? "").font(.system(size: 14, weight: .semibold)).lineLimit(2, reservesSpace: true)
+            Text(item.name ?? "").font(.footnote.weight(.medium)).lineLimit(2, reservesSpace: true)
             HStack(spacing: 6) {
                 if item.isMissing {
                     Badge(text: "Falta")
@@ -192,14 +193,14 @@ struct PantryCard: View {
                 }
                 if let exp = item.expiry {
                     let soon = exp < Date().addingTimeInterval(3 * 86400)
-                    Image(systemName: "calendar").font(.system(size: 11)).foregroundStyle(soon ? Color.spRed : Color.spSecondary)
-                    Text(Day.relative(exp)).font(.system(size: 11)).foregroundStyle(soon ? Color.spRed : Color.spSecondary)
+                    Image(systemName: "calendar").font(.caption2).foregroundStyle(soon ? Color.spRed : Color.spSecondary)
+                    Text(Day.relative(exp)).font(.caption2).foregroundStyle(soon ? Color.spRed : Color.spSecondary)
                 }
             }
         }
         .foregroundStyle(Color.spInk)
-        .padding(12)
-        .frame(width: 136, height: 172, alignment: .topLeading)
+        .padding(10)
+        .frame(width: 106, height: 132, alignment: .topLeading)
         .background(Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.tile, style: .continuous))
     }
 }
@@ -246,7 +247,7 @@ struct PantryItemEditor: View {
                     }
                 }
             }
-            .padding(24)
+            .padding(16)
         }
         .onAppear {
             hasExpiry = item.expiry != nil
@@ -303,7 +304,7 @@ struct PantryAddView: View {
                 .buttonStyle(PressableStyle())
                 if product == nil {
                     TextField("O escribe el nombre (p. ej. Arroz)", text: $name)
-                        .font(.spBody).padding(.horizontal, 20).frame(height: 56)
+                        .font(.spBody).padding(.horizontal, 14).frame(minHeight: 44)
                         .background(Color.spChip, in: Capsule())
                 }
                 HStack {
@@ -323,7 +324,7 @@ struct PantryAddView: View {
                 }
                 .disabled(product == nil && name.trimmingCharacters(in: .whitespaces).isEmpty)
             }
-            .padding(24)
+            .padding(16)
         }
         .toolbar { ToolbarItem(placement: .topBarLeading) { Button { dismiss() } label: { Image(systemName: "xmark") } } }
         .sheet(isPresented: $picking) {

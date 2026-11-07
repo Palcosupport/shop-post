@@ -37,13 +37,7 @@ struct HomeView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 30) {
-                header
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("\(greeting), \(prefs.userName.isEmpty ? "hola" : prefs.userName)")
-                        .font(.spSub).foregroundStyle(Color.spSecondary)
-                    Text("¿Qué necesitas hoy?").font(.spLargeTitle)
-                }
+            VStack(alignment: .leading, spacing: 24) {
                 if prefs.visibleStores(in: catalog).count > 1 {
                     ChipBar(items: [("all", "Todos", nil)] + prefs.visibleStores(in: catalog).map { ($0.id, $0.name, nil) },
                             selection: $storeFilter)
@@ -54,13 +48,26 @@ struct HomeView: View {
                 dropsSection
                 alertsRow
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
+            .padding(.horizontal, 16)
+            .padding(.top, 4)
             .padding(.bottom, tabBarClearance)
         }
         .scrollIndicators(.hidden)
         .spScreen()
-        .toolbarVisibility(.hidden, for: .navigationBar)
+        .navigationTitle("\(greeting)\(prefs.userName.isEmpty ? "" : ", \(prefs.userName)")")
+        .navigationSubtitle(updatedText)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { showProfile = true } label: {
+                    if prefs.initials.isEmpty {
+                        Image(systemName: "person.crop.circle")
+                    } else {
+                        Text(prefs.initials).font(.subheadline.weight(.semibold))
+                    }
+                }
+                .accessibilityLabel("Perfil y supermercados")
+            }
+        }
         .refreshable { await catalog.refresh(force: false) }
         .navigationDestination(for: HomeRoute.self) { route in
             switch route {
@@ -78,40 +85,10 @@ struct HomeView: View {
         return h < 6 ? "Buenas noches" : h < 14 ? "Buenos días" : h < 21 ? "Buenas tardes" : "Buenas noches"
     }
 
-    // MARK: Cabecera
-
-    private var header: some View {
-        HStack(alignment: .center) {
-            BrandHeader()
-            Spacer()
-            Button { showProfile = true } label: {
-                HStack(spacing: 10) {
-                    Group {
-                        if catalog.state == .loading {
-                            ProgressView()
-                        } else {
-                            Image(systemName: "storefront").font(.system(size: 22)).foregroundStyle(Color.spSecondary)
-                        }
-                    }
-                    .frame(width: 28)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(Count.string(catalog.totalCount)).font(.system(size: 17, weight: .semibold))
-                        Text(updatedText).font(.spCaption).foregroundStyle(Color.spSecondary)
-                    }
-                }
-                .padding(.horizontal, 16)
-                .frame(height: 64)
-                .background(Color.spCard, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-            }
-            .buttonStyle(PressableStyle())
-            .accessibilityLabel("Perfil y supermercados")
-        }
-    }
-
     private var updatedText: String {
-        if catalog.state == .loading { return "actualizando" }
-        guard let d = catalog.lastUpdate else { return "productos" }
-        return "precios de \(Day.relative(d))"
+        if catalog.state == .loading { return "Actualizando precios…" }
+        guard let d = catalog.lastUpdate else { return "Shop Post" }
+        return "\(Count.string(catalog.totalCount)) precios de \(Day.relative(d))"
     }
 
     // MARK: Cesta activa
@@ -127,18 +104,18 @@ struct HomeView: View {
                           buttonTitle: "Explorar el catálogo") { shop.tab = .catalog }
             } else {
                 Button { shop.tab = .basket } label: {
-                    VStack(alignment: .leading, spacing: 16) {
-                        HStack(alignment: .top) {
-                            Text(g.icon).font(.system(size: 34))
-                                .frame(width: 60, height: 60)
-                                .background(Color.spSurface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text("CESTA ACTIVA").font(.system(size: 12, weight: .medium)).tracking(2)
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(alignment: .center, spacing: 12) {
+                            Text(g.icon).font(.title2)
+                                .frame(width: 44, height: 44)
+                                .background(Color.spSurface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("CESTA ACTIVA").font(.caption2.weight(.medium)).tracking(1.2)
                                     .foregroundStyle(Color.spSecondary)
-                                Text(g.title).font(.spTitle)
+                                Text(g.title).font(.headline)
                             }
                             Spacer()
-                            Text("\(done)/\(items.count)").font(.system(size: 22, weight: .semibold)).monospacedDigit()
+                            Text("\(done)/\(items.count)").font(.headline).monospacedDigit()
                         }
                         ProgressLine(value: items.isEmpty ? 0 : Double(done) / Double(items.count))
                         HStack {
@@ -148,18 +125,18 @@ struct HomeView: View {
                                 Text(Money.string(g.total)).font(.spHeadline)
                             }
                             Spacer()
-                            HStack(spacing: 6) {
+                            HStack(spacing: 4) {
                                 Text("Ver cesta")
-                                Image(systemName: "arrow.right")
+                                Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
                             }
-                            .font(.system(size: 16, weight: .medium))
-                            .padding(.horizontal, 18)
-                            .frame(height: 46)
+                            .font(.subheadline.weight(.medium))
+                            .padding(.horizontal, 12)
+                            .frame(minHeight: 32)
                             .background(Color.spCardStrong, in: Capsule())
                         }
                     }
                     .foregroundStyle(Color.spInk)
-                    .spCard(padding: 22, radius: 30)
+                    .spCard(padding: 16)
                 }
                 .buttonStyle(PressableStyle())
             }
@@ -169,8 +146,8 @@ struct HomeView: View {
     @ViewBuilder private var missingCard: some View {
         let missing = shop.missingPantry(in: shop.activeGroup)
         if !missing.isEmpty {
-            HStack(spacing: 14) {
-                Image(systemName: "exclamationmark.circle").font(.system(size: 22))
+            HStack(spacing: 12) {
+                Image(systemName: "exclamationmark.circle").font(.title3)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Falta en casa: \(Count.items(missing.count, "producto", "productos"))").font(.spHeadline)
                     Text(missing.prefix(3).compactMap(\.name).joined(separator: ", ")).font(.spCaption)
@@ -178,20 +155,20 @@ struct HomeView: View {
                 }
                 Spacer()
                 Button("Añadir") { shop.moveMissingToBasket(missing) }
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color.spOnInk)
-                    .padding(.horizontal, 16).frame(height: 38)
+                    .padding(.horizontal, 12).frame(minHeight: 30)
                     .background(Color.spInk, in: Capsule())
                     .buttonStyle(PressableStyle())
             }
-            .spCard(padding: 18)
+            .spCard(padding: 14)
         }
     }
 
     // MARK: Explorar
 
     private var exploreSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
             SectionHeader(title: "Ahorra hoy")
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
@@ -202,10 +179,10 @@ struct HomeView: View {
                         .buttonStyle(PressableStyle())
                     }
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 16)
             }
             .scrollClipDisabled()
-            .padding(.horizontal, -20)
+            .padding(.horizontal, -16)
         }
     }
 
@@ -221,18 +198,18 @@ struct HomeView: View {
     @ViewBuilder private var dropsSection: some View {
         let drops = Array(catalog.feedChanges(stores: storeSet, drops: true).prefix(12))
         if !drops.isEmpty {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 10) {
                 SectionLinkHeader(title: "Han bajado", subtitle: "Últimos 14 días", value: HomeRoute.feed(.changes))
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: 12) {
                         ForEach(drops) { p in
-                            ProductCard(product: catalog.byId[p.id] ?? p, showStore: true).frame(width: 168)
+                            ProductCard(product: catalog.byId[p.id] ?? p, showStore: true).frame(width: 140)
                         }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 16)
                 }
                 .scrollClipDisabled()
-                .padding(.horizontal, -20)
+                .padding(.horizontal, -16)
             }
         }
     }
@@ -262,26 +239,26 @@ struct FeedCard: View {
             ZStack {
                 let imgs = products.prefix(3).compactMap(\.imageURL)
                 if imgs.isEmpty {
-                    Image(systemName: feed.icon).font(.system(size: 36, weight: .light)).foregroundStyle(Color.spTertiary)
+                    Image(systemName: feed.icon).font(.title.weight(.light)).foregroundStyle(Color.spTertiary)
                 } else {
-                    HStack(spacing: -18) {
+                    HStack(spacing: -14) {
                         ForEach(Array(imgs.enumerated()), id: \.offset) { _, url in
-                            ProductImage(url: url, padding: 4).frame(width: 64, height: 84)
+                            ProductImage(url: url, padding: 3).frame(width: 48, height: 64)
                         }
                     }
                 }
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 118)
+            .frame(height: 76)
             VStack(alignment: .leading, spacing: 3) {
-                Text(feed.title).font(.spHeadline).lineLimit(1)
+                Text(feed.title).font(.subheadline.weight(.semibold)).lineLimit(1)
                 Text(products.isEmpty ? "Nada por ahora" : Count.items(products.count, "producto", "productos"))
-                    .font(.spSub).foregroundStyle(Color.spSecondary)
+                    .font(.caption).foregroundStyle(Color.spSecondary)
             }
         }
         .foregroundStyle(Color.spInk)
-        .padding(18)
-        .frame(width: 196, height: 210, alignment: .topLeading)
+        .padding(12)
+        .frame(width: 150, height: 140, alignment: .topLeading)
         .background(Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.card, style: .continuous))
     }
 }

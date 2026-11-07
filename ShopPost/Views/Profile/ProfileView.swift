@@ -12,25 +12,24 @@ struct ProfileView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                HStack(spacing: 18) {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 14) {
                     Group {
                         if prefs.initials.isEmpty {
-                            Image(systemName: "person.fill").font(.system(size: 34)).foregroundStyle(Color.spSecondary)
+                            Image(systemName: "person.fill").font(.title2).foregroundStyle(Color.spSecondary)
                         } else {
-                            Text(prefs.initials).font(.system(size: 30, weight: .semibold))
+                            Text(prefs.initials).font(.title3.weight(.semibold))
                         }
                     }
-                    .frame(width: 92, height: 92)
+                    .frame(width: 60, height: 60)
                     .background(Color.spCard, in: Circle())
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(prefs.userName.isEmpty ? "Tu perfil" : prefs.userName).font(.system(size: 34, weight: .bold)).lineLimit(1)
-                        Text("Tu compra, sin olvidos.").font(.spSub).foregroundStyle(Color.spSecondary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(prefs.userName.isEmpty ? "Tu perfil" : prefs.userName).font(.title2.weight(.bold)).lineLimit(1)
+                        Text("Tu compra, sin olvidos.").font(.subheadline).foregroundStyle(Color.spSecondary)
                     }
                     Spacer()
-                    CircleButton(systemName: "gearshape", size: 50) { showSettings = true }
                 }
-                .padding(.bottom, 8)
+                .padding(.bottom, 4)
 
                 Button { showStores = true } label: {
                     OptionRow(icon: "storefront", title: "Tus supermercados",
@@ -38,7 +37,7 @@ struct ProfileView: View {
                               tint: .spGold)
                 }
 
-                SectionHeader(title: "Tu compra", subtitle: "Lo que Shop Post guarda para ti").padding(.top, 10)
+                SectionHeader(title: "Tu compra", subtitle: "Lo que Shop Post guarda para ti").padding(.top, 6)
                 NavigationLink(value: HomeRoute.alerts) {
                     OptionRow(icon: "bell", title: "Alertas de ahorro", subtitle: "\(prefs.alerts.filter(\.enabled).count) activas")
                 }
@@ -49,7 +48,7 @@ struct ProfileView: View {
                     OptionRow(icon: "clock.arrow.circlepath", title: "Compras anteriores", subtitle: "Repite una lista con un toque")
                 }
 
-                SectionHeader(title: "Tus grupos", subtitle: "Cesta y despensa compartidas").padding(.top, 10)
+                SectionHeader(title: "Tus grupos", subtitle: "Cesta y despensa compartidas").padding(.top, 6)
                 ForEach(shop.groups()) { g in
                     Button { groupDetail = g } label: {
                         OptionRow(icon: Persistence.shared.isShared(g) ? "person.2" : "house", title: "\(g.icon)  \(g.title)",
@@ -57,7 +56,7 @@ struct ProfileView: View {
                     }
                 }
 
-                SectionHeader(title: "Más").padding(.top, 10)
+                SectionHeader(title: "Más").padding(.top, 6)
                 Button { showSettings = true } label: {
                     OptionRow(icon: "gearshape", title: "Ajustes", subtitle: "Nombre, notificaciones, datos y privacidad")
                 }
@@ -66,8 +65,8 @@ struct ProfileView: View {
                 }
             }
             .buttonStyle(PressableStyle())
-            .padding(.horizontal, 20)
-            .padding(.bottom, 30)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 24)
         }
         .scrollIndicators(.hidden)
         .spScreen()
@@ -80,8 +79,12 @@ struct ProfileView: View {
             }
         }
         .navigationDestination(for: String.self) { _ in AboutView() }
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) { Button { dismiss() } label: { Image(systemName: "xmark") } }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { showSettings = true } label: { Image(systemName: "gearshape") }.accessibilityLabel("Ajustes")
+            }
         }
         .sheet(isPresented: $showStores) { NavigationStack { FavoriteStoresView() }.spSheet() }
         .sheet(isPresented: $showSettings) { NavigationStack { SettingsView() }.spSheet() }
@@ -118,7 +121,7 @@ struct FavoriteStoresView: View {
                                 Badge(text: "Por defecto", color: .spInk, soft: .spCardStrong)
                             }
                             Image(systemName: on ? "checkmark.circle.fill" : "circle")
-                                .font(.system(size: 26, weight: .light))
+                                .font(.title2.weight(.light))
                                 .foregroundStyle(on ? Color.spInk : Color.spTertiary)
                         }
                         .foregroundStyle(Color.spInk)
@@ -135,7 +138,7 @@ struct FavoriteStoresView: View {
                 Text("Mantén pulsado un supermercado para que el catálogo se abra siempre en él.")
                     .font(.spCaption).foregroundStyle(Color.spSecondary)
             }
-            .padding(24)
+            .padding(16)
         }
         .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Hecho") { dismiss() } } }
     }
@@ -198,7 +201,7 @@ struct SettingsView: View {
                 }
                 .spCard(padding: 18, radius: SPRadius.tile)
             }
-            .padding(24)
+            .padding(16)
         }
         .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Hecho") { catalog.dataURLString = dataURL; dismiss() } } }
         .onAppear { dataURL = catalog.dataURLString }
@@ -213,7 +216,7 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title).font(.spHeadline)
             TextField(title, text: text)
-                .font(.spBody).padding(.horizontal, 18).frame(height: 52)
+                .font(.spBody).padding(.horizontal, 14).frame(minHeight: 44)
                 .background(Color.spChip, in: Capsule())
             Text(hint).font(.spCaption).foregroundStyle(Color.spSecondary)
         }
@@ -227,7 +230,6 @@ struct AboutView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                ScreenTitle(title: "Shop Post", subtitle: "Versión \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")")
                 Text("Haz la lista de la compra con los productos reales de tu supermercado, compártela con tu casa, compara precios y entérate de las ofertas y bajadas.")
                     .font(.spBody)
                 VStack(alignment: .leading, spacing: 10) {
@@ -247,10 +249,11 @@ struct AboutView: View {
                 Text("Shop Post es una app independiente y no está afiliada, patrocinada ni respaldada por ninguno de los supermercados mostrados. Las marcas pertenecen a sus propietarios. Los precios son orientativos y pueden variar según la tienda, la zona o el momento.")
                     .font(.spCaption).foregroundStyle(Color.spSecondary)
             }
-            .padding(24)
+            .padding(16)
         }
         .spScreen()
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("Shop Post")
+        .navigationSubtitle("Versión \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")")
     }
 }
 
@@ -265,7 +268,7 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 22) {
             Spacer()
             if step == 0 {
-                Image(systemName: "basket").font(.system(size: 54, weight: .light))
+                Image(systemName: "basket").font(.largeTitle.weight(.light))
                     .frame(width: 120, height: 120)
                     .background(Color.spCard, in: RoundedRectangle(cornerRadius: 34, style: .continuous))
                 BrandHeader()
@@ -277,7 +280,7 @@ struct OnboardingView: View {
                 Text("¿Cómo te llamas?").font(.spLargeTitle)
                 Text("Tu grupo verá tu nombre cuando recojas o añadas productos.").font(.spBody).foregroundStyle(Color.spSecondary)
                 TextField("Tu nombre", text: $name)
-                    .font(.system(size: 20)).padding(.horizontal, 22).frame(height: 60)
+                    .font(.title3).padding(.horizontal, 22).frame(minHeight: 48)
                     .background(Color.spChip, in: Capsule())
                     .submitLabel(.next)
                     .onSubmit { next() }

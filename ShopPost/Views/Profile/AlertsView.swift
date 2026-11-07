@@ -10,10 +10,6 @@ struct AlertsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                HStack(alignment: .top) {
-                    ScreenTitle(title: "Alertas", subtitle: "Te avisamos cuando haya ofertas o bajadas")
-                    CircleButton(systemName: "plus", filled: true, size: 56) { creating = true }
-                }
                 if prefs.alerts.isEmpty {
                     EmptyCard(title: "Sin alertas todavía",
                               message: "Por ejemplo: «café» con bajadas de más del 10 %, o las ofertas de un producto concreto.",
@@ -23,7 +19,7 @@ struct AlertsView: View {
                     let matches = AlertEngine.shared.matches(for: alert, catalog: catalog)
                     VStack(alignment: .leading, spacing: 12) {
                         HStack(spacing: 14) {
-                            Image(systemName: alert.kind.icon).font(.system(size: 20))
+                            Image(systemName: alert.kind.icon).font(.title3)
                                 .frame(width: 48, height: 48).background(Color.spSurface, in: Circle())
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(alert.title).font(.spHeadline).lineLimit(1)
@@ -50,20 +46,26 @@ struct AlertsView: View {
                                     Label("Eliminar", systemImage: "trash")
                                 }
                             } label: {
-                                Image(systemName: "ellipsis").font(.system(size: 17, weight: .semibold))
+                                Image(systemName: "ellipsis").font(.body.weight(.semibold))
                                     .foregroundStyle(Color.spSecondary).frame(width: 40, height: 30)
                             }
                         }
                     }
-                    .spCard(padding: 18)
+                    .spCard(padding: 14)
                     .opacity(alert.enabled ? 1 : 0.6)
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 16)
             .padding(.bottom, tabBarClearance)
         }
         .spScreen()
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("Alertas")
+        .navigationSubtitle("Te avisamos de ofertas y bajadas")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { creating = true } label: { Image(systemName: "plus") }.accessibilityLabel("Nueva alerta")
+            }
+        }
         .sheet(isPresented: $creating) { NavigationStack { AlertEditor(product: nil) }.spSheet() }
         .sheet(item: $editing) { x in NavigationStack { AlertEditor(product: nil, existing: x) }.spSheet() }
         .sheet(item: $showing) { alert in
@@ -114,7 +116,7 @@ struct AlertEditor: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("¿Qué te interesa?").font(.spHeadline)
                         TextField("Palabras clave: café, aceite de oliva…", text: $alert.query)
-                            .font(.spBody).padding(.horizontal, 20).frame(height: 56)
+                            .font(.spBody).padding(.horizontal, 14).frame(minHeight: 44)
                             .background(Color.spChip, in: Capsule())
                     }
                 }
@@ -145,7 +147,7 @@ struct AlertEditor: View {
                 PrimaryButton(title: "Guardar alerta", systemName: "bell") { save() }
                     .disabled(product == nil && alert.productId == nil && alert.query.trimmingCharacters(in: .whitespaces).isEmpty && alert.kind != .new)
             }
-            .padding(24)
+            .padding(16)
         }
         .toolbar { ToolbarItem(placement: .topBarLeading) { Button { dismiss() } label: { Image(systemName: "xmark") } } }
         .onAppear {
@@ -194,7 +196,6 @@ struct HistoryView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                ScreenTitle(title: "Compras anteriores", subtitle: "Se guardan al terminar una compra en la cesta")
                 if prefs.history.isEmpty {
                     EmptyCard(title: "Aún no hay compras",
                               message: "Cuando termines una compra (Cesta → ··· → Terminar compra) la verás aquí para repetirla.")
@@ -221,21 +222,22 @@ struct HistoryView: View {
                                 if closable { dismiss() }
                             }
                             Button(role: .destructive) { prefs.history.removeAll { $0.id == record.id } } label: {
-                                Image(systemName: "trash").font(.system(size: 18))
+                                Image(systemName: "trash").font(.title3)
                                     .foregroundStyle(Color.spRed).frame(width: 56, height: 56)
                                     .background(Color.spRedSoft, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
                             }
                             .buttonStyle(PressableStyle())
                         }
                     }
-                    .spCard(padding: 18)
+                    .spCard(padding: 14)
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 16)
             .padding(.bottom, tabBarClearance)
         }
         .spScreen()
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("Compras anteriores")
+        .navigationSubtitle("Se guardan al terminar una compra")
         .toolbar {
             if closable { ToolbarItem(placement: .topBarLeading) { Button { dismiss() } label: { Image(systemName: "xmark") } } }
         }

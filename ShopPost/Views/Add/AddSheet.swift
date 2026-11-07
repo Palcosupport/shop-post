@@ -12,13 +12,13 @@ struct AddSheet: View {
     @State private var scanned: ScannedResult?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Añadir").font(.system(size: 26, weight: .semibold))
+        VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Añadir").font(.title2.weight(.semibold))
                 Text("A la cesta «\(shop.activeGroup?.title ?? "")» o a tu despensa.")
                     .font(.spSub).foregroundStyle(Color.spSecondary)
             }
-            .padding(.bottom, 6)
+            .padding(.bottom, 4)
             row("magnifyingglass", "Buscar en el catálogo", "Productos y precios") {
                 dismiss()
                 shop.tab = .catalog
@@ -30,17 +30,17 @@ struct AddSheet: View {
             row("clock.arrow.circlepath", "Repetir una compra", "Una lista anterior") { history = true }
             Button { dismiss() } label: {
                 Text("Cancelar")
-                    .font(.system(size: 17))
+                    .font(.body)
                     .foregroundStyle(Color.spInk)
-                    .frame(maxWidth: .infinity).frame(height: 56)
+                    .frame(maxWidth: .infinity).frame(minHeight: 44)
                     .background(Color.spCardStrong, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
             }
             .buttonStyle(PressableStyle())
             .padding(.top, 4)
         }
-        .padding(.horizontal, 22)
-        .padding(.top, 30)
-        .presentationDetents([.height(690), .large])
+        .padding(.horizontal, 16)
+        .padding(.top, 24)
+        .presentationDetents([.height(520), .large])
         .presentationDragIndicator(.visible)
         .fullScreenCover(isPresented: $scanning) {
             BarcodeScannerView { code in
@@ -145,7 +145,7 @@ struct BarcodeScannerView: View {
                     .frame(width: 280, height: 180)
             } else {
                 VStack(spacing: 16) {
-                    Image(systemName: "barcode.viewfinder").font(.system(size: 48)).foregroundStyle(.white)
+                    Image(systemName: "barcode.viewfinder").font(.largeTitle).foregroundStyle(.white)
                     Text("El escáner no está disponible en este dispositivo.\nEscribe el código:")
                         .multilineTextAlignment(.center).foregroundStyle(.white)
                     TextField("8410000000000", text: $manualCode)
@@ -158,7 +158,7 @@ struct BarcodeScannerView: View {
             VStack {
                 HStack {
                     Button { dismiss() } label: {
-                        Image(systemName: "xmark").font(.system(size: 18, weight: .semibold)).foregroundStyle(.white)
+                        Image(systemName: "xmark").font(.title3.weight(.semibold)).foregroundStyle(.white)
                             .frame(width: 48, height: 48).background(.ultraThinMaterial, in: Circle())
                     }
                     Spacer()
@@ -168,10 +168,10 @@ struct BarcodeScannerView: View {
                     Image(systemName: "sparkles")
                     Text("Apunta al código de barras")
                 }
-                .font(.system(size: 15, weight: .medium)).foregroundStyle(.white)
+                .font(.subheadline.weight(.medium)).foregroundStyle(.white)
                 .padding(.horizontal, 18).frame(height: 44).background(.ultraThinMaterial, in: Capsule())
             }
-            .padding(24)
+            .padding(16)
         }
     }
 }
@@ -232,17 +232,17 @@ struct ManualItemView: View {
                 Text("Escribir a mano").font(.spTitle)
                 TextField("¿Qué falta? (p. ej. Leche)", text: $name)
                     .focused($focused)
-                    .font(.spBody).padding(.horizontal, 20).frame(height: 56)
+                    .font(.spBody).padding(.horizontal, 14).frame(minHeight: 44)
                     .background(Color.spChip, in: Capsule())
                 if !suggestions.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("SUGERENCIAS DEL CATÁLOGO").font(.system(size: 12, weight: .semibold)).tracking(1.4).foregroundStyle(Color.spSecondary)
+                        Text("SUGERENCIAS DEL CATÁLOGO").font(.caption.weight(.semibold)).tracking(1.4).foregroundStyle(Color.spSecondary)
                         ForEach(suggestions) { p in
                             Button { shop.add(p, quantity: quantity); dismiss() } label: {
                                 HStack(spacing: 12) {
                                     Thumb(url: p.imageURL, size: 44)
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text(p.name).font(.system(size: 15, weight: .medium)).lineLimit(1)
+                                        Text(p.name).font(.subheadline.weight(.medium)).lineLimit(1)
                                         StoreName(storeId: p.store)
                                     }
                                     Spacer()
@@ -268,7 +268,7 @@ struct ManualItemView: View {
                 }
                 TextField("Precio aproximado (opcional)", text: $price)
                     .keyboardType(.decimalPad)
-                    .font(.spBody).padding(.horizontal, 20).frame(height: 56)
+                    .font(.spBody).padding(.horizontal, 14).frame(minHeight: 44)
                     .background(Color.spChip, in: Capsule())
                 PrimaryButton(title: "Añadir a la cesta", systemName: "basket") {
                     shop.addManual(name: name, quantity: quantity, store: store,
@@ -278,7 +278,7 @@ struct ManualItemView: View {
                 .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
                 .opacity(name.trimmingCharacters(in: .whitespaces).isEmpty ? 0.5 : 1)
             }
-            .padding(24)
+            .padding(16)
         }
         .scrollDismissesKeyboard(.interactively)
         .toolbar { ToolbarItem(placement: .topBarLeading) { Button { dismiss() } label: { Image(systemName: "xmark") } } }

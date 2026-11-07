@@ -30,9 +30,7 @@ struct ProductFeedView: View {
     var body: some View {
         let all = products
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                ScreenTitle(title: feed.title, subtitle: Count.items(all.count, "producto", "productos"))
-                SearchField(text: $query, prompt: "Buscar en \(feed.title.lowercased())…")
+            VStack(alignment: .leading, spacing: 14) {
                 if feed == .changes {
                     ChipBar(items: [(true, "Bajadas", "↓"), (false, "Subidas", "↑")], selection: $drops)
                 }
@@ -49,11 +47,14 @@ struct ProductFeedView: View {
                     }
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 16)
             .padding(.bottom, tabBarClearance)
         }
         .scrollDismissesKeyboard(.immediately)
         .spScreen()
+        .navigationTitle(feed.title)
+        .navigationSubtitle(Count.items(all.count, "producto", "productos"))
+        .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Buscar en \(feed.title.lowercased())")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { prefs.gridView.toggle() } label: {
@@ -61,7 +62,6 @@ struct ProductFeedView: View {
                 }
             }
         }
-        .navigationBarTitleDisplayMode(.inline)
     }
 
     private var emptyTitle: String {
@@ -88,10 +88,10 @@ struct SearchField: View {
     var focused: FocusState<Bool>.Binding? = nil
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "magnifyingglass").font(.system(size: 20)).foregroundStyle(Color.spSecondary)
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass").font(.body).foregroundStyle(Color.spSecondary)
             field
-                .font(.system(size: 17))
+                .font(.body)
                 .submitLabel(.search)
                 .autocorrectionDisabled()
             if !text.isEmpty {
@@ -100,8 +100,8 @@ struct SearchField: View {
                 }
             }
         }
-        .padding(.horizontal, 20)
-        .frame(height: 56)
+        .padding(.horizontal, 12)
+        .frame(minHeight: 38)
         .background(Color.spChip, in: Capsule())
     }
 

@@ -16,12 +16,12 @@ struct ProductDetailView: View {
     var body: some View {
         let p = current
         ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
+            VStack(alignment: .leading, spacing: 16) {
                 ZStack(alignment: .topLeading) {
-                    ProductImage(url: p.imageURL, padding: 34, placeholderEmoji: catalog.category(p.cat)?.emoji ?? "🛒")
+                    ProductImage(url: p.imageURL, padding: 24, placeholderEmoji: catalog.category(p.cat)?.emoji ?? "🛒")
                         .frame(maxWidth: .infinity)
-                        .frame(height: 300)
-                        .background(Color.spCard, in: RoundedRectangle(cornerRadius: 30, style: .continuous))
+                        .frame(height: 240)
+                        .background(Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.card, style: .continuous))
                     HStack(spacing: 6) {
                         if let promo = p.promo { Badge(text: promo, icon: "tag.fill") }
                         else if p.isOnOffer { Badge(text: "Oferta", icon: "tag.fill") }
@@ -41,7 +41,7 @@ struct ProductDetailView: View {
                 }
 
                 HStack(alignment: .firstTextBaseline) {
-                    PriceLabel(price: p.price, strike: p.strikePrice, size: 34)
+                    PriceLabel(price: p.price, strike: p.strikePrice, size: 28)
                     Spacer()
                     if let u = Money.unitString(p.unitPrice, unit: p.unit) {
                         Text(u).font(.spSub).foregroundStyle(Color.spSecondary)
@@ -67,8 +67,8 @@ struct ProductDetailView: View {
                 alternativesSection(p)
                 factsSection
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 120)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 24)
         }
         .scrollIndicators(.hidden)
         .spScreen()
@@ -101,13 +101,13 @@ struct ProductDetailView: View {
     }
 
     private func tileLabel(_ icon: String, _ title: String) -> some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon).font(.system(size: 20))
-            Text(title).font(.system(size: 13, weight: .medium))
+        VStack(spacing: 4) {
+            Image(systemName: icon).font(.title3)
+            Text(title).font(.footnote.weight(.medium))
         }
         .foregroundStyle(Color.spInk)
         .frame(maxWidth: .infinity)
-        .frame(height: 76)
+        .frame(minHeight: 58)
         .background(Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.tile, style: .continuous))
     }
 
@@ -133,7 +133,7 @@ struct ProductDetailView: View {
                                     Thumb(url: alt.imageURL, size: 60)
                                     VStack(alignment: .leading, spacing: 4) {
                                         StoreName(storeId: alt.store)
-                                        Text(alt.name).font(.system(size: 15, weight: .semibold)).lineLimit(2).multilineTextAlignment(.leading)
+                                        Text(alt.name).font(.subheadline.weight(.semibold)).lineLimit(2).multilineTextAlignment(.leading)
                                         Badge(text: "Más económico", color: .spGreen, soft: .spGreenSoft, icon: "arrow.down")
                                     }
                                     Spacer()
@@ -215,9 +215,9 @@ struct ProductDetailView: View {
         let inBasket = shop.quantity(of: p.id)
         return HStack(spacing: 12) {
             HStack(spacing: 0) {
-                Button { quantity = max(1, quantity - 1) } label: { Image(systemName: "minus").frame(width: 44, height: 56) }
-                Text("\(quantity)").font(.system(size: 18, weight: .semibold)).monospacedDigit().frame(minWidth: 24)
-                Button { quantity += 1 } label: { Image(systemName: "plus").frame(width: 44, height: 56) }
+                Button { quantity = max(1, quantity - 1) } label: { Image(systemName: "minus").frame(width: 40, height: 50) }
+                Text("\(quantity)").font(.title3.weight(.semibold)).monospacedDigit().frame(minWidth: 24)
+                Button { quantity += 1 } label: { Image(systemName: "plus").frame(width: 40, height: 50) }
             }
             .foregroundStyle(Color.spInk)
             .background(Color.spChip, in: Capsule())
@@ -227,8 +227,8 @@ struct ProductDetailView: View {
                 dismiss()
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 10)
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
         .padding(.bottom, 6)
         .background(Color.spBackground.opacity(0.96).ignoresSafeArea())
     }

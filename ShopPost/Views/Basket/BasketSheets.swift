@@ -37,7 +37,7 @@ struct ItemNoteSheet: View {
                     HStack(spacing: 12) {
                         Thumb(url: sub.imageURL, size: 52)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(sub.name).font(.system(size: 15, weight: .semibold)).lineLimit(2)
+                            Text(sub.name).font(.subheadline.weight(.semibold)).lineLimit(2)
                             Text("\(catalog.store(sub.store)?.name ?? sub.store) · \(Money.string(sub.price))")
                                 .font(.spCaption).foregroundStyle(Color.spSecondary)
                         }
@@ -71,7 +71,7 @@ struct ItemNoteSheet: View {
                 }
                 .padding(.top, 6)
             }
-            .padding(24)
+            .padding(16)
         }
         .onAppear { note = item.note ?? "" }
         .sheet(isPresented: $picking) {
@@ -106,7 +106,7 @@ struct ProductPicker: View {
                             Thumb(url: p.imageURL, size: 56)
                             VStack(alignment: .leading, spacing: 3) {
                                 StoreName(storeId: p.store)
-                                Text(p.name).font(.system(size: 15, weight: .semibold)).lineLimit(2).multilineTextAlignment(.leading)
+                                Text(p.name).font(.subheadline.weight(.semibold)).lineLimit(2).multilineTextAlignment(.leading)
                                 Text(p.subtitle).font(.spCaption).foregroundStyle(Color.spSecondary)
                             }
                             Spacer()
@@ -169,7 +169,7 @@ struct CompareSheet: View {
                                     Text("\(row.found) de \(items.count) encontrados").font(.spCaption).foregroundStyle(Color.spSecondary)
                                 }
                                 Spacer()
-                                Text(Money.string(row.total)).font(.system(size: 20, weight: .bold)).monospacedDigit()
+                                Text(Money.string(row.total)).font(.title3.weight(.bold)).monospacedDigit()
                             }
                             .foregroundStyle(Color.spInk)
                         }
@@ -188,7 +188,7 @@ struct CompareSheet: View {
                     .spCard(padding: 18)
                 }
             }
-            .padding(24)
+            .padding(16)
         }
         .toolbar { ToolbarItem(placement: .topBarLeading) { Button { dismiss() } label: { Image(systemName: "xmark") } } }
         .task { await compute() }
@@ -257,13 +257,13 @@ struct GroupEditor: View {
                 .font(.spSub).foregroundStyle(Color.spSecondary)
             TextField("Nombre (Casa, Piso, Pueblo…)", text: $name)
                 .font(.spBody)
-                .padding(.horizontal, 20).frame(height: 56)
+                .padding(.horizontal, 14).frame(minHeight: 44)
                 .background(Color.spChip, in: Capsule())
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(Self.emojis, id: \.self) { e in
                         Button { emoji = e } label: {
-                            Text(e).font(.system(size: 28)).frame(width: 52, height: 52)
+                            Text(e).font(.title).frame(width: 52, height: 52)
                                 .background(emoji == e ? Color.spCardStrong : Color.spCard, in: Circle())
                                 .overlay(Circle().stroke(Color.spInk, lineWidth: emoji == e ? 2 : 0))
                         }
@@ -284,7 +284,7 @@ struct GroupEditor: View {
                 dismiss()
             }
         }
-        .padding(24)
+        .padding(16)
         .onAppear { name = group?.name ?? ""; emoji = group?.icon ?? "🛒" }
     }
 }
@@ -304,7 +304,7 @@ struct GroupDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 HStack(spacing: 16) {
-                    Text(group.icon).font(.system(size: 48)).frame(width: 84, height: 84).background(Color.spCard, in: Circle())
+                    Text(group.icon).font(.largeTitle).frame(width: 84, height: 84).background(Color.spCard, in: Circle())
                     VStack(alignment: .leading, spacing: 4) {
                         Text(group.title).font(.spLargeTitle)
                         Text(db.isShared(group) ? "Grupo compartido" : "Solo tú").font(.spSub).foregroundStyle(Color.spSecondary)
@@ -322,7 +322,7 @@ struct GroupDetailView: View {
                 }
                 ForEach(members, id: \.self) { m in
                     HStack(spacing: 14) {
-                        Image(systemName: "person.crop.circle.fill").font(.system(size: 36)).foregroundStyle(Color.spSecondary)
+                        Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(Color.spSecondary)
                         VStack(alignment: .leading) {
                             Text(m.userIdentity.nameComponents.map { PersonNameComponentsFormatter.localizedString(from: $0, style: .default) } ?? "Invitado")
                                 .font(.spHeadline)
@@ -349,14 +349,14 @@ struct GroupDetailView: View {
                 .buttonStyle(PressableStyle())
                 Button(role: .destructive) { confirmDelete = true } label: {
                     Text(isOwner ? "Eliminar grupo" : "Salir del grupo")
-                        .font(.system(size: 17, weight: .medium)).foregroundStyle(Color.spRed)
-                        .frame(maxWidth: .infinity).frame(height: 56)
+                        .font(.body.weight(.medium)).foregroundStyle(Color.spRed)
+                        .frame(maxWidth: .infinity).frame(minHeight: 44)
                         .background(Color.spRedSoft, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
                 }
                 .buttonStyle(PressableStyle())
                 .disabled(shop.groups().count <= 1)
             }
-            .padding(24)
+            .padding(16)
         }
         .toolbar { ToolbarItem(placement: .topBarLeading) { Button { dismiss() } label: { Image(systemName: "xmark") } } }
         .sheet(isPresented: $editing) { NavigationStack { GroupEditor(group: group) }.spSheet().presentationDetents([.medium]) }
