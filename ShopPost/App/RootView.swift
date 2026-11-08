@@ -16,19 +16,19 @@ struct RootView: View {
         TabView(selection: selection) {
             Tab(value: AppTab.home) {
                 NavigationStack { HomeView() }
-            } label: { tabLabel("Inicio", "square.on.square") }
+            } label: { tabLabel("Inicio", "square.on.square", .home) }
             Tab(value: AppTab.pantry) {
                 NavigationStack { PantryView() }
-            } label: { tabLabel("Despensa", "square.split.2x1") }
+            } label: { tabLabel("Despensa", "square.split.2x1", .pantry) }
             Tab(value: AppTab.add) {
                 Color.spBackground
-            } label: { tabLabel("Añadir", "plus.circle") }
+            } label: { tabLabel("Añadir", "plus.circle", .add) }
             Tab(value: AppTab.catalog) {
                 NavigationStack { CatalogView() }
-            } label: { tabLabel("Catálogo", "square.text.square") }
+            } label: { tabLabel("Catálogo", "square.text.square", .catalog) }
             Tab(value: AppTab.basket) {
                 NavigationStack { BasketView() }
-            } label: { tabLabel("Cesta", "bag") }
+            } label: { tabLabel("Cesta", "bag", .basket) }
             .badge(basketPending)
         }
         .overlay(alignment: .top) {
@@ -53,12 +53,13 @@ struct RootView: View {
         }
     }
 
-    /// Icono de línea (sin relleno): la barra de pestañas de iOS los rellena por defecto.
-    private func tabLabel(_ title: String, _ symbol: String) -> some View {
-        Label {
+    /// Icono de línea; la pestaña activa se rellena con el acento si así se elige en Personalización.
+    private func tabLabel(_ title: String, _ symbol: String, _ tab: AppTab) -> some View {
+        let filled = prefs.filledActiveTab && shop.tab == tab
+        return Label {
             Text(title)
         } icon: {
-            Image(systemName: symbol).environment(\.symbolVariants, .none)
+            Image(systemName: filled ? symbol + ".fill" : symbol).environment(\.symbolVariants, .none)
         }
     }
 

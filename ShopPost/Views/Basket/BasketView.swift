@@ -231,7 +231,7 @@ struct GroupCard: View {
                 Text(group.icon).font(.title2)
                 Spacer()
                 if active {
-                    Image(systemName: "checkmark.circle.fill").font(.body).foregroundStyle(Color.spInk)
+                    Image(systemName: "checkmark.circle.fill").font(.body).foregroundStyle(Color.spAccent)
                 }
             }
             Spacer()
@@ -246,7 +246,7 @@ struct GroupCard: View {
         .padding(12)
         .frame(width: 150, height: 104, alignment: .topLeading)
         .background(Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.card, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: SPRadius.card, style: .continuous).stroke(Color.spInk, lineWidth: active ? 1.5 : 0))
+        .overlay(RoundedRectangle(cornerRadius: SPRadius.card, style: .continuous).stroke(Color.spAccent, lineWidth: active ? 1.5 : 0))
     }
 }
 

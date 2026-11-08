@@ -230,6 +230,7 @@ struct AccentPicker: View {
     @Environment(Preferences.self) private var prefs
 
     var body: some View {
+        @Bindable var prefs = prefs
         VStack(alignment: .leading, spacing: 12) {
             Text("Personalización").font(.spHeadline)
             Text("Color de acento para botones, selecciones y la pestaña activa.")
@@ -266,6 +267,14 @@ struct AccentPicker: View {
                     .accessibilityAddTraits(on ? .isSelected : [])
                 }
             }
+            Divider().padding(.vertical, 2)
+            Toggle(isOn: $prefs.filledActiveTab.animation(.snappy)) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Pestaña activa rellena").font(.spBody)
+                    Text("El icono seleccionado se rellena con el color.").font(.spCaption).foregroundStyle(Color.spSecondary)
+                }
+            }
+            .tint(Color.spAccent)
         }
         .spCard(padding: 18, radius: SPRadius.tile)
     }

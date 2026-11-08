@@ -82,6 +82,7 @@ final class Preferences {
     var activeGroupID: String? { didSet { save("activeGroupID", activeGroupID) } }
     var onboarded: Bool { didSet { save("onboarded", onboarded) } }
     var accent: AccentChoice { didSet { save("accent", accent) } }
+    var filledActiveTab: Bool { didSet { save("filledActiveTab", filledActiveTab) } }
 
     private init() {
         userName = Self.load("userName") ?? ""
@@ -94,6 +95,7 @@ final class Preferences {
         activeGroupID = Self.load("activeGroupID") ?? nil
         onboarded = Self.load("onboarded") ?? false
         accent = Self.load("accent") ?? .ink
+        filledActiveTab = Self.load("filledActiveTab") ?? true
     }
 
     var displayName: String { userName.isEmpty ? "tú" : userName }
