@@ -43,6 +43,8 @@ struct HomeView: View {
     @Environment(Preferences.self) private var prefs
     @State private var storeFilter = "all"
     @State private var showProfile = false
+    /// Ancho disponible para «Tus supermercados» (para repartir los círculos).
+    @State private var storesWidth: CGFloat = 370
 
     private var storeSet: Set<String>? {
         storeFilter == "all" ? Set(prefs.visibleStores(in: catalog).map(\.id)) : [storeFilter]
@@ -53,7 +55,10 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 24) {
                 greetingHeader
                 missingCard
-                FeedCarousel(slides: Feed.circles.map { FeedSlide(feed: $0, count: preview($0).count) })
+                FeedCarousel(slides: Feed.circles.map { feed in
+                    let items = preview(feed)
+                    return FeedSlide(feed: feed, count: items.count, images: Array(items.lazy.compactMap(\.imageURL).prefix(4)))
+                })
                 storesSection
                 highlightsSection
                 dropsSection
@@ -202,17 +207,22 @@ struct HomeView: View {
         if stores.count > 1 {
             VStack(alignment: .leading, spacing: 14) {
                 SectionHeader(title: "Tus supermercados", actionTitle: "Ver todo") { shop.tab = .catalog }
+                // Si caben todos, se reparte el ancho entero; si no, se ve medio supermercado más (como en iOS).
+                let item = StoreCircle.width(in: storesWidth, count: stores.count + 1)
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: 14) {
-                        StoreCircle(storeId: nil, title: "Todos", selected: storeFilter == "all") { select("all") }
+                    HStack(alignment: .top, spacing: 0) {
+                        StoreCircle(storeId: nil, title: "Todos", selected: storeFilter == "all", width: item) { select("all") }
                         ForEach(stores, id: \.id) { st in
-                            StoreCircle(storeId: st.id, title: st.name, selected: storeFilter == st.id) { select(st.id) }
+                            StoreCircle(storeId: st.id, title: st.name, selected: storeFilter == st.id, width: item) { select(st.id) }
                         }
                     }
-                    .padding(.horizontal, 16)
+                    .scrollTargetLayout()
                 }
+                .contentMargins(.horizontal, 16, for: .scrollContent)
+                .scrollTargetBehavior(.viewAligned)
                 .scrollClipDisabled()
                 .padding(.horizontal, -16)
+                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { storesWidth = $0 }
             }
         }
     }
@@ -291,6 +301,8 @@ struct HomeView: View {
 struct FeedSlide {
     let feed: Feed
     let count: Int
+    /// Fotos de la colección para el fondo difuminado de la portada.
+    let images: [URL]
 }
 
 /// Panel de Inicio: portadas de las colecciones al estilo de Apple TV (pasa solo y deja ver la siguiente).
@@ -340,40 +352,64 @@ struct FeedCarousel: View {
 
     private var current: Feed? { page ?? slides.first?.feed }
 
-    /// Portada de la colección: color propio, icono grande de fondo, título y acceso.
+    /// Portada de la colección: fotos de sus productos difuminadas y teñidas con su color,
+    /// y encima una placa de cristal con el título y el acceso.
     private func card(_ s: FeedSlide) -> some View {
         let color = s.feed.coverColor
         return NavigationLink(value: HomeRoute.feed(s.feed)) {
-            ZStack(alignment: .bottomLeading) {
-                LinearGradient(colors: [color.mix(with: .white, by: 0.12), color.mix(with: .black, by: 0.28)],
-                               startPoint: .topLeading, endPoint: .bottomTrailing)
-                Image(systemName: s.feed.icon)
-                    .font(.system(size: 150, weight: .ultraLight))
-                    .foregroundStyle(.white.opacity(0.22))
-                    .rotationEffect(.degrees(-8))
-                    .offset(x: 40, y: -10)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                VStack(alignment: .leading, spacing: 6) {
+            // El fondo va detrás de un hueco de tamaño fijo: las fotos «fill» no pueden agrandar la tarjeta.
+            Color.clear
+                .frame(maxWidth: .infinity)
+                .frame(height: 200)
+                .background { background(s, color) }
+                .overlay(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(s.count > 0 ? Count.items(s.count, "producto", "productos") : "Nada por ahora")
                         .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.85))
+                        .foregroundStyle(Color.spSecondary)
                     Text(s.feed.title)
-                        .font(.largeTitle.bold())
-                        .foregroundStyle(.white)
+                        .font(.title.bold())
+                        .foregroundStyle(Color.spInk)
                         .lineLimit(1).minimumScaleFactor(0.7)
                     Text("Ver \(s.feed.title.lowercased())")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(color.mix(with: .black, by: 0.3))
+                        .foregroundStyle(Color.spOnInk)
                         .padding(.horizontal, 14).frame(minHeight: 32)
-                        .background(.white, in: Capsule())
+                        .background(Color.spInk, in: Capsule())
                         .padding(.top, 6)
                 }
-                .padding(20)
-            }
-            .frame(height: 200)
+                .padding(16)
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .padding(16)
+                }
             .clipShape(RoundedRectangle(cornerRadius: SPRadius.card, style: .continuous))
         }
         .buttonStyle(PressableStyle())
+    }
+
+    /// Fondo: hasta 4 fotos en columnas, muy difuminadas, con un velo del color de la colección.
+    /// Sin fotos (colección vacía), un degradado de ese color.
+    @ViewBuilder private func background(_ s: FeedSlide, _ color: Color) -> some View {
+        if s.images.isEmpty {
+            LinearGradient(colors: [color.mix(with: .white, by: 0.35), color.mix(with: .black, by: 0.1)],
+                           startPoint: .topLeading, endPoint: .bottomTrailing)
+        } else {
+            HStack(spacing: 0) {
+                ForEach(s.images, id: \.self) { url in
+                    Color.white
+                        .overlay {
+                            AsyncImage(url: url) { phase in
+                                if let img = phase.image { img.resizable().scaledToFill() } else { Color.white }
+                            }
+                        }
+                        .clipped()
+                }
+            }
+            .background(Color.white)
+            .compositingGroup()
+            .blur(radius: 34, opaque: true)
+            .overlay(color.opacity(0.38))
+        }
     }
 }
 
@@ -382,34 +418,55 @@ struct StoreCircle: View {
     let storeId: String?
     let title: String
     let selected: Bool
+    /// Hueco que ocupa (lo calcula `width(in:count:)`).
+    var width: CGFloat = 74
     let action: () -> Void
+
+    /// Ancho mínimo de cada supermercado (círculo, aro y nombre).
+    static let minWidth: CGFloat = 68
+
+    /// Ancho de cada hueco: el ancho entero repartido si caben todos; si no, los que quepan más medio.
+    /// `total` es el ancho de la pantalla; se descuentan los 16 pt de margen a cada lado.
+    static func width(in total: CGFloat, count n: Int) -> CGFloat {
+        let w = total - 32
+        if CGFloat(n) * minWidth <= w { return w / CGFloat(n) }
+        let shown = max(1, (w / minWidth - 0.5).rounded(.down))
+        return w / (shown + 0.5)
+    }
 
     var body: some View {
         Button(action: action) {
             VStack(spacing: 7) {
-                Group {
-                    if let storeId {
-                        StoreBadge(storeId: storeId, size: 50)
-                    } else {
-                        Image(systemName: "square.grid.2x2")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundStyle(Color.spInk)
-                            .frame(width: 50, height: 50)
-                            .background(Color.spChip, in: Circle())
-                    }
-                }
-                .padding(4)
-                .overlay(Circle().strokeBorder(selected ? ring : .clear, lineWidth: 2.5))
+                // El círculo crece con el hueco (proporcional al ancho del dispositivo), con un tope.
+                circle(diameter)
+                    .padding(4)
+                    .overlay(Circle().strokeBorder(selected ? ring : .clear, lineWidth: 2.5))
                 Text(title)
                     .font(.caption.weight(selected ? .semibold : .regular))
                     .foregroundStyle(selected ? Color.spInk : Color.spSecondary)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
-            .frame(minWidth: 62)
+            .frame(width: width)
+            .contentShape(Rectangle())
         }
         .buttonStyle(PressableStyle())
         .accessibilityLabel(title)
         .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    private var diameter: CGFloat { min(max(width - 22, 44), 64) }
+
+    @ViewBuilder private func circle(_ d: CGFloat) -> some View {
+        if let storeId {
+            StoreBadge(storeId: storeId, size: d)
+        } else {
+            Image(systemName: "square.grid.2x2")
+                .font(.system(size: d * 0.4, weight: .medium))
+                .foregroundStyle(Color.spInk)
+                .frame(width: d, height: d)
+                .background(Color.spChip, in: Circle())
+        }
     }
 
     private var ring: Color { BrandStyle.store(storeId)?.background ?? .spInk }
