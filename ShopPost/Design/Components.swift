@@ -46,12 +46,9 @@ struct SectionHeader: View {
             Spacer()
             if let actionTitle, let action {
                 Button(action: action) {
-                    HStack(spacing: 4) {
-                        Text(actionTitle)
-                        Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
-                    }
-                    .font(.spSub)
-                    .foregroundStyle(Color.spSecondary)
+                    Text(actionTitle)
+                        .font(.spSub)
+                        .foregroundStyle(Color.spAccent)
                 }
                 .buttonStyle(.plain)
             }
@@ -72,12 +69,9 @@ struct SectionLinkHeader<V: Hashable>: View {
             }
             Spacer()
             NavigationLink(value: value) {
-                HStack(spacing: 4) {
-                    Text("Ver todo")
-                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
-                }
-                .font(.spSub)
-                .foregroundStyle(Color.spSecondary)
+                Text("Ver todo")
+                    .font(.spSub)
+                    .foregroundStyle(Color.spAccent)
             }
             .buttonStyle(.plain)
         }
