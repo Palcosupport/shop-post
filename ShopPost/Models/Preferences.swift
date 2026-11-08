@@ -94,7 +94,7 @@ final class Preferences {
         gridView = Self.load("gridView") ?? true
         activeGroupID = Self.load("activeGroupID") ?? nil
         onboarded = Self.load("onboarded") ?? false
-        accent = Self.load("accent") ?? .ink
+        accent = Self.load("accent") ?? .blue
         filledActiveTab = Self.load("filledActiveTab") ?? true
     }
 

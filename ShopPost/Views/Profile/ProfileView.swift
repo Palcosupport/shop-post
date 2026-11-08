@@ -235,7 +235,7 @@ struct AccentPicker: View {
             Text("Personalización").font(.spHeadline)
             Text("Color de acento para botones, selecciones y la pestaña activa.")
                 .font(.spSub).foregroundStyle(Color.spSecondary)
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 14) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 5), spacing: 14) {
                 ForEach(AccentChoice.allCases) { choice in
                     let on = prefs.accent == choice
                     Button {
@@ -245,7 +245,7 @@ struct AccentPicker: View {
                         VStack(spacing: 6) {
                             Circle()
                                 .fill(choice.color)
-                                .frame(width: 40, height: 40)
+                                .frame(width: 36, height: 36)
                                 .overlay {
                                     if on {
                                         Image(systemName: "checkmark")

@@ -330,7 +330,7 @@ struct ProductImage: View {
                 if scheme == .light {
                     img.padding(padding)
                 } else {
-                    ZStack { Color(hex: 0xE9E7E1); img.padding(6) }
+                    ZStack { Color.white; img.padding(6) }
                         .compositingGroup()
                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                         .padding(padding)

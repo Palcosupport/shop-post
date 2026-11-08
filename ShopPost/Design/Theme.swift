@@ -1,23 +1,23 @@
 import SwiftUI
 import UIKit
 
-// Paleta cálida y neutra: fondo crema, tarjetas gris piedra, acento negro.
+// Paleta nativa de iOS: colores del sistema, con modo oscuro automático.
 extension Color {
-    static let spBackground = Color(light: 0xF7F6F2, dark: 0x111110)
-    static let spCard = Color(light: 0xEFEEEA, dark: 0x1D1D1B)
-    static let spCardStrong = Color(light: 0xE6E4DE, dark: 0x2A2A27)
-    static let spChip = Color(light: 0xEDECE7, dark: 0x262624)
-    static let spSurface = Color(light: 0xFFFFFF, dark: 0x2A2A27)
-    static let spInk = Color(light: 0x111111, dark: 0xF5F4F0)
-    static let spOnInk = Color(light: 0xFFFFFF, dark: 0x111111)
-    static let spSecondary = Color(light: 0x7A7974, dark: 0x9C9B96)
-    static let spTertiary = Color(light: 0xAAA9A3, dark: 0x6C6B67)
-    static let spDivider = Color(light: 0xE3E1DB, dark: 0x2E2E2B)
-    static let spGreen = Color(light: 0x2F7A4B, dark: 0x67C08B)
-    static let spGreenSoft = Color(light: 0xE3EEE5, dark: 0x1E2E23)
-    static let spRed = Color(light: 0xB8432F, dark: 0xE5786A)
-    static let spRedSoft = Color(light: 0xF4E3DF, dark: 0x352220)
-    static let spGold = Color(light: 0x9A6B3F, dark: 0xC99A6A)
+    static let spBackground = Color(uiColor: .systemGroupedBackground)
+    static let spCard = Color(uiColor: .secondarySystemGroupedBackground)
+    static let spCardStrong = Color(uiColor: .tertiarySystemFill)
+    static let spChip = Color(uiColor: .tertiarySystemFill)
+    static let spSurface = Color(uiColor: .secondarySystemGroupedBackground)
+    static let spInk = Color(uiColor: .label)
+    static let spOnInk = Color(uiColor: .systemBackground)
+    static let spSecondary = Color(uiColor: .secondaryLabel)
+    static let spTertiary = Color(uiColor: .tertiaryLabel)
+    static let spDivider = Color(uiColor: .separator)
+    static let spGreen = Color(uiColor: .systemGreen)
+    static let spGreenSoft = Color(uiColor: .systemGreen).opacity(0.15)
+    static let spRed = Color(uiColor: .systemRed)
+    static let spRedSoft = Color(uiColor: .systemRed).opacity(0.12)
+    static let spGold = Color(uiColor: .systemBrown)
 
     init(hex: UInt32, alpha: Double = 1) {
         self.init(.sRGB,
@@ -39,36 +39,51 @@ extension Color {
     }
 }
 
-/// Color de acento elegido por el usuario en Ajustes › Personalización.
+/// Color de acento elegido por el usuario en Ajustes › Personalización (colores del sistema).
 enum AccentChoice: String, CaseIterable, Codable, Identifiable {
-    case ink, blue, teal, mustard, pumpkin, plum
+    case blue, indigo, purple, pink, orange, yellow, teal, mint, brown, graphite
     var id: String { rawValue }
 
     var name: String {
         switch self {
-        case .ink: "Tinta"
         case .blue: "Azul"
-        case .teal: "Petróleo"
-        case .mustard: "Mostaza"
-        case .pumpkin: "Calabaza"
-        case .plum: "Berenjena"
+        case .indigo: "Índigo"
+        case .purple: "Morado"
+        case .pink: "Rosa"
+        case .orange: "Naranja"
+        case .yellow: "Amarillo"
+        case .teal: "Turquesa"
+        case .mint: "Menta"
+        case .brown: "Marrón"
+        case .graphite: "Grafito"
         }
     }
 
-    /// (claro, oscuro) del acento y del contenido que va encima.
-    private var palette: (UInt32, UInt32, UInt32, UInt32) {
+    private var uiColor: UIColor {
         switch self {
-        case .ink: (0x111111, 0xF5F4F0, 0xFFFFFF, 0x111111)
-        case .blue: (0x2B4C7E, 0x7FA3DB, 0xFFFFFF, 0x111111)
-        case .teal: (0x1F5E63, 0x5DB3B8, 0xFFFFFF, 0x111111)
-        case .mustard: (0xC2902A, 0xD9A743, 0x111111, 0x111111)
-        case .pumpkin: (0xC9652A, 0xE8894A, 0xFFFFFF, 0x111111)
-        case .plum: (0x6B3A5B, 0xC08AAE, 0xFFFFFF, 0x111111)
+        case .blue: .systemBlue
+        case .indigo: .systemIndigo
+        case .purple: .systemPurple
+        case .pink: .systemPink
+        case .orange: .systemOrange
+        case .yellow: .systemYellow
+        case .teal: .systemTeal
+        case .mint: .systemMint
+        case .brown: .systemBrown
+        case .graphite: .label
         }
     }
 
-    var color: Color { Color(light: palette.0, dark: palette.1) }
-    var onColor: Color { Color(light: palette.2, dark: palette.3) }
+    var color: Color { Color(uiColor: uiColor) }
+
+    /// Texto e iconos sobre el acento: negro en los colores claros para que se lea bien.
+    var onColor: Color {
+        switch self {
+        case .yellow, .mint: .black
+        case .graphite: Color(uiColor: .systemBackground)
+        default: .white
+        }
+    }
 }
 
 extension Color {
