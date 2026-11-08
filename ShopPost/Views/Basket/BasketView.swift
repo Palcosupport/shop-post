@@ -262,7 +262,7 @@ struct BasketItemRow: View {
                 Button { withAnimation(.snappy) { shop.toggleChecked(item) } } label: {
                     Image(systemName: item.checked ? "checkmark.circle.fill" : "circle")
                         .font(.title3.weight(.light))
-                        .foregroundStyle(item.checked ? Color.spInk : Color.spTertiary)
+                        .foregroundStyle(item.checked ? Color.spAccent : Color.spTertiary)
                         .contentTransition(.symbolEffect(.replace))
                 }
                 .buttonStyle(.plain)

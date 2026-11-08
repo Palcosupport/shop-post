@@ -15,7 +15,6 @@ struct ShopPostApp: App {
                 .environment(CatalogService.shared)
                 .environment(Preferences.shared)
                 .environment(\.managedObjectContext, Persistence.shared.viewContext)
-                .tint(Color.spInk)
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background { AppDelegate.scheduleRefresh() }

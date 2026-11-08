@@ -81,6 +81,7 @@ final class Preferences {
     var gridView: Bool { didSet { save("gridView", gridView) } }
     var activeGroupID: String? { didSet { save("activeGroupID", activeGroupID) } }
     var onboarded: Bool { didSet { save("onboarded", onboarded) } }
+    var accent: AccentChoice { didSet { save("accent", accent) } }
 
     private init() {
         userName = Self.load("userName") ?? ""
@@ -92,6 +93,7 @@ final class Preferences {
         gridView = Self.load("gridView") ?? true
         activeGroupID = Self.load("activeGroupID") ?? nil
         onboarded = Self.load("onboarded") ?? false
+        accent = Self.load("accent") ?? .ink
     }
 
     var displayName: String { userName.isEmpty ? "tú" : userName }

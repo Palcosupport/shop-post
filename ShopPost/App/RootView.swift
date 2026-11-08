@@ -46,6 +46,7 @@ struct RootView: View {
         .fullScreenCover(isPresented: Binding(get: { !prefs.onboarded }, set: { if !$0 { prefs.onboarded = true } })) {
             OnboardingView()
         }
+        .tint(Color.spAccent)
         .task {
             shop.ensureDefaultGroup()
             await catalog.bootstrap()

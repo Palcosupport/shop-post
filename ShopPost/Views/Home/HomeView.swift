@@ -156,9 +156,9 @@ struct HomeView: View {
                 Spacer()
                 Button("Añadir") { shop.moveMissingToBasket(missing) }
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color.spOnInk)
+                    .foregroundStyle(Color.spOnAccent)
                     .padding(.horizontal, 12).frame(minHeight: 30)
-                    .background(Color.spInk, in: Capsule())
+                    .background(Color.spAccent, in: Capsule())
                     .buttonStyle(PressableStyle())
             }
             .spCard(padding: 14)

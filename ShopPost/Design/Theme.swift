@@ -39,6 +39,45 @@ extension Color {
     }
 }
 
+/// Color de acento elegido por el usuario en Ajustes › Personalización.
+enum AccentChoice: String, CaseIterable, Codable, Identifiable {
+    case ink, blue, teal, mustard, pumpkin, plum
+    var id: String { rawValue }
+
+    var name: String {
+        switch self {
+        case .ink: "Tinta"
+        case .blue: "Azul"
+        case .teal: "Petróleo"
+        case .mustard: "Mostaza"
+        case .pumpkin: "Calabaza"
+        case .plum: "Berenjena"
+        }
+    }
+
+    /// (claro, oscuro) del acento y del contenido que va encima.
+    private var palette: (UInt32, UInt32, UInt32, UInt32) {
+        switch self {
+        case .ink: (0x111111, 0xF5F4F0, 0xFFFFFF, 0x111111)
+        case .blue: (0x2B4C7E, 0x7FA3DB, 0xFFFFFF, 0x111111)
+        case .teal: (0x1F5E63, 0x5DB3B8, 0xFFFFFF, 0x111111)
+        case .mustard: (0xC2902A, 0xD9A743, 0x111111, 0x111111)
+        case .pumpkin: (0xC9652A, 0xE8894A, 0xFFFFFF, 0x111111)
+        case .plum: (0x6B3A5B, 0xC08AAE, 0xFFFFFF, 0x111111)
+        }
+    }
+
+    var color: Color { Color(light: palette.0, dark: palette.1) }
+    var onColor: Color { Color(light: palette.2, dark: palette.3) }
+}
+
+extension Color {
+    /// Acento actual (botones principales, selección, pestaña activa).
+    @MainActor static var spAccent: Color { Preferences.shared.accent.color }
+    /// Texto e iconos sobre el acento.
+    @MainActor static var spOnAccent: Color { Preferences.shared.accent.onColor }
+}
+
 /// Margen inferior de las pantallas (la barra de pestañas nativa ya reserva su sitio).
 let tabBarClearance: CGFloat = 20
 

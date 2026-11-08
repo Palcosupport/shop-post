@@ -29,10 +29,10 @@ struct PantryView: View {
                                 Text("\(count)").font(.title3.weight(.semibold))
                                 Text(p.title).font(.caption)
                             }
-                            .foregroundStyle(place == p ? Color.spOnInk : Color.spInk)
+                            .foregroundStyle(place == p ? Color.spOnAccent : Color.spInk)
                             .frame(maxWidth: .infinity, minHeight: 72, alignment: .topLeading)
                             .padding(12)
-                            .background(place == p ? Color.spInk : Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.tile, style: .continuous))
+                            .background(place == p ? Color.spAccent : Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.tile, style: .continuous))
                         }
                         .buttonStyle(PressableStyle())
                     }

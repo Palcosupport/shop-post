@@ -30,7 +30,7 @@ struct AlertsView: View {
                                 if let i = prefs.alerts.firstIndex(where: { $0.id == alert.id }) { prefs.alerts[i].enabled = v }
                             }))
                             .labelsHidden()
-                            .tint(Color.spInk)
+                            .tint(Color.spAccent)
                         }
                         HStack {
                             Button { showing = alert } label: {
@@ -133,7 +133,7 @@ struct AlertEditor: View {
                             Text(alert.minDrop == 0 ? "Cualquiera" : "\(alert.minDrop) %").font(.spSub).foregroundStyle(Color.spSecondary)
                         }
                         Slider(value: Binding(get: { Double(alert.minDrop) }, set: { alert.minDrop = Int($0) }), in: 0...50, step: 5)
-                            .tint(Color.spInk)
+                            .tint(Color.spAccent)
                     }
                     .spCard(padding: 18, radius: SPRadius.tile)
                 }

@@ -58,7 +58,7 @@ struct ProfileView: View {
 
                 SectionHeader(title: "Más").padding(.top, 6)
                 Button { showSettings = true } label: {
-                    OptionRow(icon: "gearshape", title: "Ajustes", subtitle: "Nombre, notificaciones, datos y privacidad")
+                    OptionRow(icon: "gearshape", title: "Ajustes", subtitle: "Nombre, personalización, notificaciones y datos")
                 }
                 NavigationLink(value: "about") {
                     OptionRow(icon: "info.circle", title: "Acerca de Shop Post", subtitle: "Fuentes de datos y aviso legal")
@@ -122,7 +122,7 @@ struct FavoriteStoresView: View {
                             }
                             Image(systemName: on ? "checkmark.circle.fill" : "circle")
                                 .font(.title2.weight(.light))
-                                .foregroundStyle(on ? Color.spInk : Color.spTertiary)
+                                .foregroundStyle(on ? Color.spAccent : Color.spTertiary)
                         }
                         .foregroundStyle(Color.spInk)
                         .spCard(padding: 16, radius: SPRadius.tile)
@@ -157,6 +157,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 18) {
                 Text("Ajustes").font(.spTitle)
                 field("Tu nombre", text: $prefs.userName, hint: "Se muestra a tu grupo al recoger o asignar productos.")
+                AccentPicker()
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Notificaciones").font(.spHeadline)
                     Text(notifStatus == .authorized ? "Activadas: te avisaremos de tus alertas de ahorro." : "Actívalas para recibir tus alertas de ahorro.")
@@ -219,6 +220,52 @@ struct SettingsView: View {
                 .font(.spBody).padding(.horizontal, 14).frame(minHeight: 44)
                 .background(Color.spChip, in: Capsule())
             Text(hint).font(.spCaption).foregroundStyle(Color.spSecondary)
+        }
+        .spCard(padding: 18, radius: SPRadius.tile)
+    }
+}
+
+/// Ajustes › Personalización: color de acento de la app.
+struct AccentPicker: View {
+    @Environment(Preferences.self) private var prefs
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Personalización").font(.spHeadline)
+            Text("Color de acento para botones, selecciones y la pestaña activa.")
+                .font(.spSub).foregroundStyle(Color.spSecondary)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 14) {
+                ForEach(AccentChoice.allCases) { choice in
+                    let on = prefs.accent == choice
+                    Button {
+                        withAnimation(.snappy) { prefs.accent = choice }
+                        Haptics.tap()
+                    } label: {
+                        VStack(spacing: 6) {
+                            Circle()
+                                .fill(choice.color)
+                                .frame(width: 40, height: 40)
+                                .overlay {
+                                    if on {
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: 15, weight: .bold))
+                                            .foregroundStyle(choice.onColor)
+                                    }
+                                }
+                                .padding(3)
+                                .overlay(Circle().strokeBorder(on ? choice.color : .clear, lineWidth: 2))
+                            Text(choice.name)
+                                .font(.caption.weight(on ? .semibold : .regular))
+                                .foregroundStyle(on ? Color.spInk : Color.spSecondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(PressableStyle())
+                    .accessibilityLabel(choice.name)
+                    .accessibilityAddTraits(on ? .isSelected : [])
+                }
+            }
         }
         .spCard(padding: 18, radius: SPRadius.tile)
     }

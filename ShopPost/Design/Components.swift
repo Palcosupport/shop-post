@@ -96,9 +96,9 @@ struct CircleButton: View {
         Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: size * 0.42, weight: .medium))
-                .foregroundStyle(filled ? Color.spOnInk : Color.spInk)
+                .foregroundStyle(filled ? Color.spOnAccent : Color.spInk)
                 .frame(width: size, height: size)
-                .background(filled ? Color.spInk : Color.spChip, in: Circle())
+                .background(filled ? Color.spAccent : Color.spChip, in: Circle())
         }
         .buttonStyle(PressableStyle())
     }
@@ -119,10 +119,10 @@ struct PrimaryButton: View {
                 Text(title)
             }
             .font(.body.weight(.semibold))
-            .foregroundStyle(style == .dark ? Color.spOnInk : Color.spInk)
+            .foregroundStyle(style == .dark ? Color.spOnAccent : Color.spInk)
             .frame(maxWidth: .infinity)
             .frame(minHeight: 50)
-            .background(style == .dark ? Color.spInk : Color.spCardStrong,
+            .background(style == .dark ? Color.spAccent : Color.spCardStrong,
                         in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .buttonStyle(PressableStyle())
@@ -153,10 +153,10 @@ struct Chip: View {
                 Text(title).lineLimit(1)
             }
             .font(.subheadline.weight(selected ? .semibold : .regular))
-            .foregroundStyle(selected ? Color.spOnInk : Color.spInk)
+            .foregroundStyle(selected ? Color.spOnAccent : Color.spInk)
             .padding(.horizontal, 14)
             .frame(minHeight: 34)
-            .background(selected ? Color.spInk : Color.spChip, in: Capsule())
+            .background(selected ? Color.spAccent : Color.spChip, in: Capsule())
         }
         .buttonStyle(PressableStyle())
     }
@@ -250,7 +250,7 @@ struct ProgressLine: View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule().fill(Color.spCardStrong)
-                Capsule().fill(Color.spInk).frame(width: max(0, min(1, value)) * geo.size.width)
+                Capsule().fill(Color.spAccent).frame(width: max(0, min(1, value)) * geo.size.width)
             }
         }
         .frame(height: 4)
@@ -394,9 +394,9 @@ struct QuantityControl: View {
             Button { onChange(1) } label: {
                 Image(systemName: "plus")
                     .font(.system(size: compact ? 13 : 15, weight: .semibold))
-                    .foregroundStyle(Color.spOnInk)
+                    .foregroundStyle(Color.spOnAccent)
                     .frame(width: h, height: h)
-                    .background(Color.spInk, in: Circle())
+                    .background(Color.spAccent, in: Circle())
             }
             .buttonStyle(PressableStyle())
             .accessibilityLabel("Añadir a la cesta")
@@ -417,8 +417,8 @@ struct QuantityControl: View {
                         .frame(width: h, height: h)
                 }
             }
-            .foregroundStyle(Color.spOnInk)
-            .background(Color.spInk, in: Capsule())
+            .foregroundStyle(Color.spOnAccent)
+            .background(Color.spAccent, in: Capsule())
             .buttonStyle(.plain)
         }
     }
