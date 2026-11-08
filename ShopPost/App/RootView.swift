@@ -19,7 +19,7 @@ struct RootView: View {
             } label: { tabLabel("Inicio", "square.on.square") }
             Tab(value: AppTab.pantry) {
                 NavigationStack { PantryView() }
-            } label: { tabLabel("Despensa", "server.rack") }
+            } label: { tabLabel("Despensa", "square.split.2x1") }
             Tab(value: AppTab.add) {
                 Color.spBackground
             } label: { tabLabel("Añadir", "plus.circle") }
