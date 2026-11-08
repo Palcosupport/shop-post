@@ -43,7 +43,7 @@ struct HomeView: View {
     @Environment(Preferences.self) private var prefs
     @State private var storeFilter = "all"
     @State private var showProfile = false
-    /// Ancho disponible para «Tus supermercados» (para repartir los círculos).
+    /// Ancho útil de «Tus supermercados» (para repartir los círculos).
     @State private var storesWidth: CGFloat = 370
 
     private var storeSet: Set<String>? {
@@ -97,6 +97,11 @@ struct HomeView: View {
         .sheet(isPresented: $showProfile) { NavigationStack { ProfileView() }.spSheet() }
     }
 
+    private var todayText: String {
+        let s = Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide).locale(Locale(identifier: "es_ES")))
+        return s.prefix(1).uppercased() + s.dropFirst()
+    }
+
     private var greeting: String {
         let h = Calendar.current.component(.hour, from: Date())
         return h < 6 ? "Buenas noches" : h < 14 ? "Buenos días" : h < 21 ? "Buenas tardes" : "Buenas noches"
@@ -126,18 +131,25 @@ struct HomeView: View {
 
     // MARK: Cabecera
 
-    /// Nombre de la app centrado (el número de precios ya se ve en el catálogo).
+    /// Logotipo centrado: «SHOP POST» en Futura, mayúsculas espaciadas (estilo G).
     private var logo: some View {
-        Text("Shop Post").font(.headline)
+        Text("SHOP POST")
+            .font(.custom("Futura-Bold", size: 17, relativeTo: .headline))
+            .tracking(1.6)
+            .foregroundStyle(Color.spInk)
+            .accessibilityLabel("Shop Post")
             .accessibilityAddTraits(.isHeader)
     }
 
     private var greetingHeader: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("\(greeting)\(prefs.userName.isEmpty ? "" : ", \(prefs.userName)").")
+            Text("\(greeting)\(prefs.userName.isEmpty ? "" : ", \(prefs.userName)")")
                 .font(.spTitle)
                 .foregroundStyle(Color.spInk)
-            Text("¿Qué te falta hoy?").font(.subheadline).foregroundStyle(Color.spSecondary)
+            // La fecha de hoy, como en Apple News («Sábado, 8 de noviembre»).
+            Text(todayText)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.spSecondary)
         }
         .padding(.top, 8)
     }
@@ -184,6 +196,8 @@ struct HomeView: View {
         if stores.count > 1 {
             VStack(alignment: .leading, spacing: 14) {
                 SectionHeader(title: "Tus supermercados", actionTitle: "Ver todo") { shop.tab = .catalog }
+                    // El título ocupa justo el ancho útil: de ahí se saca el tamaño de los círculos.
+                    .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { storesWidth = $0 }
                 // Si caben todos, se reparte el ancho entero; si no, se ve medio supermercado más (como en iOS).
                 // «Todos» y «Favoritos» van delante de los supermercados.
                 let item = StoreCircle.width(in: storesWidth, count: stores.count + 2)
@@ -210,7 +224,6 @@ struct HomeView: View {
                 .scrollTargetBehavior(.viewAligned)
                 .scrollClipDisabled()
                 .padding(.horizontal, -16)
-                .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { storesWidth = $0 }
             }
         }
     }
@@ -411,13 +424,12 @@ struct StoreCircle: View {
     /// Hueco que ocupa (lo calcula `width(in:count:)`).
     var width: CGFloat = 74
 
-    /// Ancho mínimo de cada supermercado (círculo, aro y nombre).
-    static let minWidth: CGFloat = 60
+    /// Ancho mínimo de cada supermercado: tamaño cómodo; si no caben todos, el resto se ve deslizando.
+    static let minWidth: CGFloat = 80
 
     /// Ancho de cada hueco: el ancho entero repartido si caben todos; si no, los que quepan más medio.
-    /// `total` es el ancho de la pantalla; se descuentan los 16 pt de margen a cada lado.
-    static func width(in total: CGFloat, count n: Int) -> CGFloat {
-        let w = total - 32
+    /// `w` es el ancho útil (la pantalla sin los márgenes).
+    static func width(in w: CGFloat, count n: Int) -> CGFloat {
         if CGFloat(n) * minWidth <= w { return w / CGFloat(n) }
         let shown = max(1, (w / minWidth - 0.5).rounded(.down))
         return w / (shown + 0.5)

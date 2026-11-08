@@ -2,12 +2,13 @@ import SwiftUI
 import UIKit
 
 // Paleta nativa de iOS: colores del sistema, con modo oscuro automático.
+// Fondo blanco (negro en oscuro) y tarjetas en gris claro, como WhatsApp.
 extension Color {
-    static let spBackground = Color(uiColor: .systemGroupedBackground)
-    static let spCard = Color(uiColor: .secondarySystemGroupedBackground)
+    static let spBackground = Color(uiColor: .systemBackground)
+    static let spCard = Color(uiColor: .secondarySystemBackground)
     static let spCardStrong = Color(uiColor: .tertiarySystemFill)
     static let spChip = Color(uiColor: .tertiarySystemFill)
-    static let spSurface = Color(uiColor: .secondarySystemGroupedBackground)
+    static let spSurface = Color(uiColor: .secondarySystemBackground)
     static let spInk = Color(uiColor: .label)
     static let spOnInk = Color(uiColor: .systemBackground)
     static let spSecondary = Color(uiColor: .secondaryLabel)
