@@ -129,6 +129,9 @@ def _parse_cards(content: str, category: str, subcategory: str) -> List[dict]:
                 promo = re.sub(r"(-?\d+)\s+%", r"\1%", promo)
         img_m = re.search(r"<img[^>]+src=['\"](https://supermercado\.eroski\.es//?images/[^'\"]+)['\"]", block)
         image = img_m.group(1).replace(".es//images", ".es/images") if img_m else None
+        if not image:
+            # Algunos productos (p. ej. electrónica) no traen <img> en el listado, pero la foto existe en la ruta estándar.
+            image = f"https://supermercado.eroski.es/images/{sku}.jpg"
         size = None
         if "," in name:
             tail = name.rsplit(",", 1)[1].strip()

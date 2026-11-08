@@ -321,7 +321,15 @@ struct ProductImage: View {
 
     var body: some View {
         // Ocupa siempre todo el hueco (también mientras carga o si falla) para no descuadrar las tarjetas.
-        ZStack { Color.clear; image }
+        ZStack {
+            Color.clear
+            // Sin URL, AsyncImage se quedaría en blanco: se muestra el emoji de la categoría.
+            if url == nil { placeholder } else { image }
+        }
+    }
+
+    private var placeholder: some View {
+        Text(placeholderEmoji).font(.system(size: 30)).opacity(0.6)
     }
 
     private var image: some View {
@@ -340,7 +348,7 @@ struct ProductImage: View {
                         .padding(padding)
                 }
             case .failure:
-                Text(placeholderEmoji).font(.system(size: 30)).opacity(0.6)
+                placeholder
             default:
                 Color.clear
             }
