@@ -38,14 +38,17 @@ struct HomeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
+                greetingHeader
                 if prefs.visibleStores(in: catalog).count > 1 {
                     ChipBar(items: [("all", "Todos", nil)] + prefs.visibleStores(in: catalog).map { ($0.id, $0.name, nil) },
                             selection: $storeFilter, brand: { BrandStyle.store($0) })
                 }
                 missingCard
+                heroCard
                 exploreSection
                 dropsSection
-                alertsRow
+                mindfulBanner
+                historyRow
             }
             .padding(.horizontal, 16)
             .padding(.top, 4)
@@ -53,9 +56,9 @@ struct HomeView: View {
         }
         .scrollIndicators(.hidden)
         .spScreen()
-        .navigationTitle("\(greeting)\(prefs.userName.isEmpty ? "" : ", \(prefs.userName)")")
-        .navigationSubtitle(updatedText)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .principal) { logo }
             ToolbarItem(placement: .topBarTrailing) {
                 Button { showProfile = true } label: {
                     if prefs.initials.isEmpty {
@@ -112,24 +115,86 @@ struct HomeView: View {
         }
     }
 
+    // MARK: Cabecera
+
+    /// Nombre de la app centrado, con la fecha de los precios debajo.
+    private var logo: some View {
+        VStack(spacing: 1) {
+            Text("Shop Post").font(.headline)
+            Text(updatedText).font(.caption2).foregroundStyle(Color.spSecondary)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+    }
+
+    private var greetingHeader: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("\(greeting)\(prefs.userName.isEmpty ? "" : ", \(prefs.userName)").")
+                .font(.spTitle)
+                .foregroundStyle(Color.spInk)
+            Text("¿Qué te falta hoy?").font(.subheadline).foregroundStyle(Color.spSecondary)
+        }
+        .padding(.top, 8)
+    }
+
+    // MARK: Destacado
+
+    /// El producto que más ha bajado (con foto); si no hay bajadas, la primera oferta.
+    private var featured: (product: Product, drop: Double?)? {
+        // La bajada se mide en el registro de cambios (pct); el producto del catálogo aporta foto y precio al día.
+        let best = catalog.feedChanges(stores: storeSet, drops: true)
+            .filter { $0.imageURL != nil }
+            .min { ($0.pct ?? 0) < ($1.pct ?? 0) }
+        if let best { return (catalog.byId[best.id] ?? best, best.pct) }
+        return catalog.offers(stores: storeSet).first { $0.imageURL != nil }.map { ($0, nil) }
+    }
+
+    @ViewBuilder private var heroCard: some View {
+        if let (p, drop) = featured {
+            let pct = drop.flatMap { $0 <= -1 ? $0 : nil }
+            HStack(alignment: .center, spacing: 8) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Badge(text: pct.map { "Ha bajado \(Money.percent($0))" } ?? "Oferta destacada",
+                          color: pct == nil ? .spRed : .spGreen, soft: pct == nil ? .spRedSoft : .spGreenSoft)
+                    Text(p.name)
+                        .font(.spHeadline)
+                        .foregroundStyle(Color.spInk)
+                        .lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                    StoreName(storeId: p.store)
+                    PriceLabel(price: p.price, strike: p.strikePrice, size: 17)
+                    Button { shop.presentedProduct = p } label: {
+                        Text("Ver oferta").font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.spOnAccent)
+                            .padding(.horizontal, 14).frame(minHeight: 32)
+                            .background(Color.spAccent, in: Capsule())
+                    }
+                    .buttonStyle(PressableStyle())
+                    .padding(.top, 4)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                ProductImage(url: p.imageURL, padding: 4)
+                    .frame(width: 130, height: 160)
+            }
+            .spCard(padding: 18)
+            .contentShape(Rectangle())
+            .onTapGesture { shop.presentedProduct = p }
+        }
+    }
+
     // MARK: Explorar
 
     private var exploreSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SectionHeader(title: "Ahorra hoy")
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(Feed.allCases, id: \.self) { feed in
-                        NavigationLink(value: HomeRoute.feed(feed)) {
-                            FeedCard(feed: feed, products: preview(feed))
-                        }
-                        .buttonStyle(PressableStyle())
+        VStack(alignment: .leading, spacing: 14) {
+            SectionHeader(title: "Ahorra hoy", actionTitle: "Ver todo") { shop.tab = .catalog }
+            HStack(alignment: .top, spacing: 8) {
+                ForEach(Feed.allCases, id: \.self) { feed in
+                    NavigationLink(value: HomeRoute.feed(feed)) {
+                        FeedCircle(feed: feed, image: preview(feed).lazy.compactMap(\.imageURL).first)
                     }
+                    .buttonStyle(PressableStyle())
                 }
-                .padding(.horizontal, 16)
             }
-            .scrollClipDisabled()
-            .padding(.horizontal, -16)
         }
     }
 
@@ -161,51 +226,66 @@ struct HomeView: View {
         }
     }
 
-    private var alertsRow: some View {
+    // MARK: Alertas e historial
+
+    private var mindfulBanner: some View {
         let active = prefs.alerts.filter(\.enabled).count
-        return VStack(spacing: 12) {
-            NavigationLink(value: HomeRoute.alerts) {
-                OptionRow(icon: "bell", title: active == 0 ? "Crea tu primera alerta de ahorro" : "Alertas de ahorro",
-                          subtitle: active == 0 ? "Te avisamos cuando baje lo que te interesa" : "\(active) activas")
+        return NavigationLink(value: HomeRoute.alerts) {
+            HStack(spacing: 18) {
+                Image(systemName: "leaf")
+                    .font(.system(size: 34, weight: .light))
+                    .foregroundStyle(Color.spSecondary)
+                    .frame(width: 56)
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Compra con cabeza.\nAhorra de verdad.")
+                        .font(.spHeadline)
+                        .foregroundStyle(Color.spInk)
+                        .multilineTextAlignment(.leading)
+                    HStack {
+                        Text(active == 0 ? "Crea tu primera alerta de ahorro" : "Alertas de ahorro: \(active) activas")
+                            .font(.footnote)
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.footnote)
+                    }
+                    .foregroundStyle(Color.spSecondary)
+                }
             }
-            NavigationLink(value: HomeRoute.history) {
-                OptionRow(icon: "clock.arrow.circlepath", title: "Compras anteriores",
-                          subtitle: prefs.history.isEmpty ? "Repite una compra con un toque" : Count.items(prefs.history.count, "compra guardada", "compras guardadas"))
-            }
+            .spCard(padding: 18)
+        }
+        .buttonStyle(PressableStyle())
+    }
+
+    private var historyRow: some View {
+        NavigationLink(value: HomeRoute.history) {
+            OptionRow(icon: "clock.arrow.circlepath", title: "Compras anteriores",
+                      subtitle: prefs.history.isEmpty ? "Repite una compra con un toque" : Count.items(prefs.history.count, "compra guardada", "compras guardadas"))
         }
         .buttonStyle(PressableStyle())
     }
 }
 
-struct FeedCard: View {
+/// Círculo con la foto de un producto y el nombre de la colección debajo.
+struct FeedCircle: View {
     let feed: Feed
-    let products: [Product]
+    let image: URL?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(spacing: 8) {
             ZStack {
-                let imgs = products.prefix(3).compactMap(\.imageURL)
-                if imgs.isEmpty {
-                    Image(systemName: feed.icon).font(.title.weight(.light)).foregroundStyle(Color.spTertiary)
+                Circle().fill(Color.spCard)
+                if let image {
+                    ProductImage(url: image, padding: 14)
                 } else {
-                    HStack(spacing: -14) {
-                        ForEach(Array(imgs.enumerated()), id: \.offset) { _, url in
-                            ProductImage(url: url, padding: 3).frame(width: 48, height: 64)
-                        }
-                    }
+                    Image(systemName: feed.icon).font(.title2.weight(.light)).foregroundStyle(Color.spTertiary)
                 }
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 76)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(feed.title).font(.subheadline.weight(.semibold)).lineLimit(1)
-                Text(products.isEmpty ? "Nada por ahora" : Count.items(products.count, "producto", "productos"))
-                    .font(.caption).foregroundStyle(Color.spSecondary)
-            }
+            .frame(width: 76, height: 76)
+            .clipShape(Circle())
+            Text(feed.title)
+                .font(.caption.weight(.medium))
+                .multilineTextAlignment(.center).lineLimit(2)
+                .foregroundStyle(Color.spInk)
         }
-        .foregroundStyle(Color.spInk)
-        .padding(12)
-        .frame(width: 150, height: 140, alignment: .topLeading)
-        .background(Color.spCard, in: RoundedRectangle(cornerRadius: SPRadius.card, style: .continuous))
+        .frame(maxWidth: .infinity)
     }
 }
