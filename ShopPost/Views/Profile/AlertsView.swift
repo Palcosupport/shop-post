@@ -179,7 +179,7 @@ struct FlowChips: View {
     var body: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: 8)], alignment: .leading, spacing: 8) {
             ForEach(stores) { s in
-                Chip(title: s.name, selected: selected.contains(s.id)) {
+                Chip(title: s.name, selected: selected.contains(s.id), brand: BrandStyle.store(s.id)) {
                     if let i = selected.firstIndex(of: s.id) { selected.remove(at: i) } else { selected.append(s.id) }
                 }
             }

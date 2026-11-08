@@ -40,9 +40,8 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 24) {
                 if prefs.visibleStores(in: catalog).count > 1 {
                     ChipBar(items: [("all", "Todos", nil)] + prefs.visibleStores(in: catalog).map { ($0.id, $0.name, nil) },
-                            selection: $storeFilter)
+                            selection: $storeFilter, brand: { BrandStyle.store($0) })
                 }
-                basketCard
                 missingCard
                 exploreSection
                 dropsSection
@@ -89,58 +88,6 @@ struct HomeView: View {
         if catalog.state == .loading { return "Actualizando precios…" }
         guard let d = catalog.lastUpdate else { return "Shop Post" }
         return "\(Count.string(catalog.totalCount)) precios de \(Day.relative(d))"
-    }
-
-    // MARK: Cesta activa
-
-    @ViewBuilder private var basketCard: some View {
-        let _ = shop.revision
-        if let g = shop.activeGroup {
-            let items = g.itemList
-            let done = items.filter(\.checked).count
-            if items.isEmpty {
-                EmptyCard(title: "Tu cesta «\(g.title)» está vacía",
-                          message: "Busca productos en el catálogo o escanea un código de barras para empezar tu lista.",
-                          buttonTitle: "Explorar el catálogo") { shop.tab = .catalog }
-            } else {
-                Button { shop.tab = .basket } label: {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack(alignment: .center, spacing: 12) {
-                            Text(g.icon).font(.title2)
-                                .frame(width: 44, height: 44)
-                                .background(Color.spSurface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text("CESTA ACTIVA").font(.caption2.weight(.medium)).tracking(1.2)
-                                    .foregroundStyle(Color.spSecondary)
-                                Text(g.title).font(.headline)
-                            }
-                            Spacer()
-                            Text("\(done)/\(items.count)").font(.headline).monospacedDigit()
-                        }
-                        ProgressLine(value: items.isEmpty ? 0 : Double(done) / Double(items.count))
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(items.count - done == 0 ? "¡Todo recogido!" : "Quedan \(Count.items(items.count - done))")
-                                    .font(.spSub).foregroundStyle(Color.spSecondary)
-                                Text(Money.string(g.total)).font(.spHeadline)
-                            }
-                            Spacer()
-                            HStack(spacing: 4) {
-                                Text("Ver cesta")
-                                Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
-                            }
-                            .font(.subheadline.weight(.medium))
-                            .padding(.horizontal, 12)
-                            .frame(minHeight: 32)
-                            .background(Color.spCardStrong, in: Capsule())
-                        }
-                    }
-                    .foregroundStyle(Color.spInk)
-                    .spCard(padding: 16)
-                }
-                .buttonStyle(PressableStyle())
-            }
-        }
     }
 
     @ViewBuilder private var missingCard: some View {

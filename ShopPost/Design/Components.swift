@@ -144,6 +144,8 @@ struct Chip: View {
     let title: String
     var selected = false
     var icon: String? = nil
+    /// Colores propios al seleccionarla (p. ej. la marca del supermercado); si no, el acento.
+    var brand: BrandStyle? = nil
     let action: () -> Void
 
     var body: some View {
@@ -153,10 +155,10 @@ struct Chip: View {
                 Text(title).lineLimit(1)
             }
             .font(.subheadline.weight(selected ? .semibold : .regular))
-            .foregroundStyle(selected ? Color.spOnAccent : Color.spInk)
+            .foregroundStyle(selected ? (brand?.foreground ?? Color.spOnAccent) : Color.spInk)
             .padding(.horizontal, 14)
             .frame(minHeight: 34)
-            .background(selected ? Color.spAccent : Color.spChip, in: Capsule())
+            .background(selected ? (brand?.background ?? Color.spAccent) : Color.spChip, in: Capsule())
         }
         .buttonStyle(PressableStyle())
     }
@@ -165,12 +167,13 @@ struct Chip: View {
 struct ChipBar<ID: Hashable>: View {
     let items: [(id: ID, title: String, icon: String?)]
     @Binding var selection: ID
+    var brand: (ID) -> BrandStyle? = { _ in nil }
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(items, id: \.id) { item in
-                    Chip(title: item.title, selected: selection == item.id, icon: item.icon) {
+                    Chip(title: item.title, selected: selection == item.id, icon: item.icon, brand: brand(item.id)) {
                         withAnimation(.snappy) { selection = item.id }
                         Haptics.tap()
                     }
@@ -286,11 +289,12 @@ struct StoreBadge: View {
     var body: some View {
         let info = storeId.flatMap { CatalogService.shared.store($0) }
         let name = info?.name ?? storeId?.capitalized ?? "?"
+        let brand = BrandStyle.store(storeId)
         Text(String(name.prefix(1)).uppercased())
             .font(.system(size: size * 0.48, weight: .bold, design: .rounded))
-            .foregroundStyle(.white)
+            .foregroundStyle(brand?.foreground ?? .white)
             .frame(width: size, height: size)
-            .background(Circle().fill(info?.color.map { Color(hexString: $0) } ?? Color.spSecondary))
+            .background(Circle().fill(brand?.background ?? Color.spSecondary))
             .accessibilityLabel(name)
     }
 }

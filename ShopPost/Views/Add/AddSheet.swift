@@ -264,7 +264,8 @@ struct ManualItemView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Supermercado (opcional)").font(.spHeadline)
                     ChipBar(items: [("", "Cualquiera", nil)] + prefs.visibleStores(in: catalog).map { ($0.id, $0.name, nil) },
-                            selection: Binding(get: { store ?? "" }, set: { store = $0.isEmpty ? nil : $0 }))
+                            selection: Binding(get: { store ?? "" }, set: { store = $0.isEmpty ? nil : $0 }),
+                            brand: { BrandStyle.store($0) })
                 }
                 TextField("Precio aproximado (opcional)", text: $price)
                     .keyboardType(.decimalPad)

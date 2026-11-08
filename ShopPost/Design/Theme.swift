@@ -93,6 +93,28 @@ extension Color {
     @MainActor static var spOnAccent: Color { Preferences.shared.accent.onColor }
 }
 
+/// Colores de marca de cada supermercado (fondo y letra), para etiquetas seleccionadas e insignias.
+struct BrandStyle {
+    let background: Color
+    let foreground: Color
+
+    @MainActor static func store(_ id: String?) -> BrandStyle? {
+        guard let id else { return nil }
+        switch id {
+        case "mercadona": return BrandStyle(background: Color(hexString: "#00A650"), foreground: .white)
+        case "consum": return BrandStyle(background: Color(hexString: "#FF6A13"), foreground: .white)
+        case "eroski": return BrandStyle(background: Color(hexString: "#E30613"), foreground: .white)
+        case "lidl": return BrandStyle(background: Color(hexString: "#0050AA"), foreground: Color(hexString: "#FFF000"))
+        case "carrefour": return BrandStyle(background: Color(hexString: "#004E9F"), foreground: .white)
+        case "dia": return BrandStyle(background: Color(hexString: "#E2001A"), foreground: .white)
+        case "alcampo": return BrandStyle(background: Color(hexString: "#E2001A"), foreground: .white)
+        default:
+            guard let hex = CatalogService.shared.store(id)?.color else { return nil }
+            return BrandStyle(background: Color(hexString: hex), foreground: .white)
+        }
+    }
+}
+
 /// Margen inferior de las pantallas (la barra de pestañas nativa ya reserva su sitio).
 let tabBarClearance: CGFloat = 20
 

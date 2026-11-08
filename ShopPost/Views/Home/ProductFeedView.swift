@@ -36,7 +36,7 @@ struct ProductFeedView: View {
                 }
                 if prefs.visibleStores(in: catalog).count > 1 {
                     ChipBar(items: [("all", "Todos", nil)] + prefs.visibleStores(in: catalog).map { ($0.id, $0.name, nil) },
-                            selection: $store)
+                            selection: $store, brand: { BrandStyle.store($0) })
                 }
                 if all.isEmpty {
                     EmptyCard(title: emptyTitle, message: emptyMessage)

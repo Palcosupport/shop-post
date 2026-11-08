@@ -19,7 +19,7 @@ struct BasketView: View {
         let items = group?.itemList ?? []
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                stats(group, items)
+                if let group, !items.isEmpty { activeCard(group, items) }
                 groupsCarousel(group)
                 if !items.isEmpty {
                     compareCard(items)
@@ -70,20 +70,32 @@ struct BasketView: View {
         }
     }
 
-    private func stats(_ g: SPGroup?, _ items: [SPItem]) -> some View {
-        let done = items.filter(\.checked).count
-        let members = g.map { max(1, Persistence.shared.participants(of: $0).count) } ?? 1
-        let missing = items.filter(\.notInStore).count
-        return HStack(spacing: 10) {
-            StatTile(icon: "checkmark.circle", value: items.isEmpty ? "0 %" : "\(Int(Double(done) / Double(items.count) * 100)) %", label: "Recogido")
-            StatTile(icon: missing > 0 ? "exclamationmark.circle" : "person.2", value: missing > 0 ? "\(missing)" : "\(members)",
-                     label: missing > 0 ? "No estaban" : (members == 1 ? "Miembro" : "Miembros"))
-            StatTile(icon: "eurosign", value: shortMoney(g?.total ?? 0), label: "Total")
-        }
-    }
+    // MARK: Cesta activa
 
-    private func shortMoney(_ v: Double) -> String {
-        v >= 100 ? String(format: "%.0f €", v) : Money.string(v)
+    private func activeCard(_ g: SPGroup, _ items: [SPItem]) -> some View {
+        let done = items.filter(\.checked).count
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .center, spacing: 12) {
+                Text(g.icon).font(.title2)
+                    .frame(width: 44, height: 44)
+                    .background(Color.spSurface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("CESTA ACTIVA").font(.caption2.weight(.medium)).tracking(1.2)
+                        .foregroundStyle(Color.spSecondary)
+                    Text(g.title).font(.headline)
+                }
+                Spacer()
+                Text("\(done)/\(items.count)").font(.headline).monospacedDigit()
+            }
+            ProgressLine(value: Double(done) / Double(items.count))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(items.count - done == 0 ? "¡Todo recogido!" : "Quedan \(Count.items(items.count - done))")
+                    .font(.spSub).foregroundStyle(Color.spSecondary)
+                Text(Money.string(g.total)).font(.spHeadline)
+            }
+        }
+        .foregroundStyle(Color.spInk)
+        .spCard(padding: 16)
     }
 
     // MARK: Grupos
