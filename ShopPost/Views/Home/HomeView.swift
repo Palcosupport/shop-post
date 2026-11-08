@@ -102,12 +102,6 @@ struct HomeView: View {
         return h < 6 ? "Buenas noches" : h < 14 ? "Buenos días" : h < 21 ? "Buenas tardes" : "Buenas noches"
     }
 
-    private var updatedText: String {
-        if catalog.state == .loading { return "Actualizando precios…" }
-        guard let d = catalog.lastUpdate else { return "Shop Post" }
-        return "\(Count.string(catalog.totalCount)) precios de \(Day.relative(d))"
-    }
-
     @ViewBuilder private var missingCard: some View {
         let missing = shop.missingPantry(in: shop.activeGroup)
         if !missing.isEmpty {
@@ -132,35 +126,18 @@ struct HomeView: View {
 
     // MARK: Cabecera
 
-    /// Nombre de la app centrado, con la fecha de los precios debajo.
+    /// Nombre de la app centrado (el número de precios ya se ve en el catálogo).
     private var logo: some View {
-        VStack(spacing: 1) {
-            Text("Shop Post").font(.headline)
-            Text(updatedText).font(.caption2).foregroundStyle(Color.spSecondary)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isHeader)
+        Text("Shop Post").font(.headline)
+            .accessibilityAddTraits(.isHeader)
     }
 
-    /// Saludo con el acceso a Favoritos a la derecha, bajo el botón de perfil.
     private var greetingHeader: some View {
-        HStack(alignment: .center, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("\(greeting)\(prefs.userName.isEmpty ? "" : ", \(prefs.userName)").")
-                    .font(.spTitle)
-                    .foregroundStyle(Color.spInk)
-                Text("¿Qué te falta hoy?").font(.subheadline).foregroundStyle(Color.spSecondary)
-            }
-            Spacer(minLength: 0)
-            NavigationLink(value: HomeRoute.feed(.favorites)) {
-                Image(systemName: "star")
-                    .font(.system(size: 19, weight: .medium))
-                    .foregroundStyle(Color.spAccent)
-                    .frame(width: 44, height: 44)
-                    .glassEffect(.regular.interactive(), in: Circle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Favoritos")
+        VStack(alignment: .leading, spacing: 4) {
+            Text("\(greeting)\(prefs.userName.isEmpty ? "" : ", \(prefs.userName)").")
+                .font(.spTitle)
+                .foregroundStyle(Color.spInk)
+            Text("¿Qué te falta hoy?").font(.subheadline).foregroundStyle(Color.spSecondary)
         }
         .padding(.top, 8)
     }
@@ -208,12 +185,23 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 14) {
                 SectionHeader(title: "Tus supermercados", actionTitle: "Ver todo") { shop.tab = .catalog }
                 // Si caben todos, se reparte el ancho entero; si no, se ve medio supermercado más (como en iOS).
-                let item = StoreCircle.width(in: storesWidth, count: stores.count + 1)
+                // «Todos» y «Favoritos» van delante de los supermercados.
+                let item = StoreCircle.width(in: storesWidth, count: stores.count + 2)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: 0) {
-                        StoreCircle(storeId: nil, title: "Todos", selected: storeFilter == "all", width: item) { select("all") }
+                        Button { select("all") } label: {
+                            StoreCircle(storeId: nil, icon: "square.grid.2x2", title: "Todos", selected: storeFilter == "all", width: item)
+                        }
+                        .buttonStyle(PressableStyle())
+                        NavigationLink(value: HomeRoute.feed(.favorites)) {
+                            StoreCircle(storeId: nil, icon: "star", title: "Favoritos", selected: false, width: item)
+                        }
+                        .buttonStyle(PressableStyle())
                         ForEach(stores, id: \.id) { st in
-                            StoreCircle(storeId: st.id, title: st.name, selected: storeFilter == st.id, width: item) { select(st.id) }
+                            Button { select(st.id) } label: {
+                                StoreCircle(storeId: st.id, title: st.name, selected: storeFilter == st.id, width: item)
+                            }
+                            .buttonStyle(PressableStyle())
                         }
                     }
                     .scrollTargetLayout()
@@ -416,14 +404,15 @@ struct FeedCarousel: View {
 /// Supermercado en círculo (con su color de marca); el elegido lleva un aro alrededor.
 struct StoreCircle: View {
     let storeId: String?
+    /// Icono para los círculos que no son un supermercado (Todos, Favoritos).
+    var icon: String = "square.grid.2x2"
     let title: String
     let selected: Bool
     /// Hueco que ocupa (lo calcula `width(in:count:)`).
     var width: CGFloat = 74
-    let action: () -> Void
 
     /// Ancho mínimo de cada supermercado (círculo, aro y nombre).
-    static let minWidth: CGFloat = 68
+    static let minWidth: CGFloat = 60
 
     /// Ancho de cada hueco: el ancho entero repartido si caben todos; si no, los que quepan más medio.
     /// `total` es el ancho de la pantalla; se descuentan los 16 pt de margen a cada lado.
@@ -435,22 +424,20 @@ struct StoreCircle: View {
     }
 
     var body: some View {
-        Button(action: action) {
-            VStack(spacing: 7) {
-                // El círculo crece con el hueco (proporcional al ancho del dispositivo), con un tope.
-                circle(diameter)
-                    .padding(4)
-                    .overlay(Circle().strokeBorder(selected ? ring : .clear, lineWidth: 2.5))
-                Text(title)
-                    .font(.caption.weight(selected ? .semibold : .regular))
-                    .foregroundStyle(selected ? Color.spInk : Color.spSecondary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-            }
-            .frame(width: width)
-            .contentShape(Rectangle())
+        VStack(spacing: 7) {
+            // El círculo crece con el hueco (proporcional al ancho del dispositivo), con un tope.
+            circle(diameter)
+                .padding(4)
+                .overlay(Circle().strokeBorder(selected ? ring : .clear, lineWidth: 2.5))
+            Text(title)
+                .font(.caption.weight(selected ? .semibold : .regular))
+                .foregroundStyle(selected ? Color.spInk : Color.spSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
-        .buttonStyle(PressableStyle())
+        .frame(width: width)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(title)
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
@@ -461,7 +448,7 @@ struct StoreCircle: View {
         if let storeId {
             StoreBadge(storeId: storeId, size: d)
         } else {
-            Image(systemName: "square.grid.2x2")
+            Image(systemName: icon)
                 .font(.system(size: d * 0.4, weight: .medium))
                 .foregroundStyle(Color.spInk)
                 .frame(width: d, height: d)

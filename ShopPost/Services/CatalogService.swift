@@ -163,7 +163,8 @@ final class CatalogService {
             return (ids, eans, offers)
         }.value
         self.meta = meta
-        stores = meta.stores
+        // En toda la app los supermercados van por orden alfabético.
+        stores = meta.stores.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
         categories = meta.categories
         productsByStore = products
         byId = index.0
