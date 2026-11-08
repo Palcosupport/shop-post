@@ -3,13 +3,16 @@ import SwiftUI
 enum Feed: String, Hashable, CaseIterable {
     case offers, changes, new, favorites
 
-    /// Color de la portada de la colección en el carrusel de Inicio.
-    var coverColor: Color {
-        switch self {
-        case .new: Color(uiColor: .systemIndigo)
-        case .offers: Color(uiColor: .systemRed)
-        case .changes: Color(uiColor: .systemGreen)
-        case .favorites: Color(uiColor: .systemYellow)
+    /// Tres tonos (oscuro, medio, claro) de la portada de la colección en el carrusel de Inicio.
+    var coverPalette: (deep: Color, mid: Color, light: Color) {
+        func rgb(_ v: UInt32) -> Color {
+            Color(red: Double((v >> 16) & 255) / 255, green: Double((v >> 8) & 255) / 255, blue: Double(v & 255) / 255)
+        }
+        return switch self {
+        case .new: (rgb(0x1A1C8C), rgb(0x4B47E0), rgb(0x3FC1F2))
+        case .offers: (rgb(0xB80F2B), rgb(0xFF5A36), rgb(0xFFC24D))
+        case .changes: (rgb(0x0A5E35), rgb(0x22B566), rgb(0xC4F26A))
+        case .favorites: (rgb(0x8A5A00), rgb(0xF5B400), rgb(0xFFE27A))
         }
     }
 
@@ -57,7 +60,7 @@ struct HomeView: View {
                 missingCard
                 FeedCarousel(slides: Feed.circles.map { feed in
                     let items = preview(feed)
-                    return FeedSlide(feed: feed, count: items.count, images: Array(items.lazy.compactMap(\.imageURL).prefix(4)))
+                    return FeedSlide(feed: feed, count: items.count)
                 })
                 storesSection
                 highlightsSection
@@ -302,8 +305,6 @@ struct HomeView: View {
 struct FeedSlide {
     let feed: Feed
     let count: Int
-    /// Fotos de la colección para el fondo difuminado de la portada.
-    let images: [URL]
 }
 
 /// Panel de Inicio: portadas de las colecciones al estilo de Apple TV (pasa solo y deja ver la siguiente).
@@ -329,6 +330,7 @@ struct FeedCarousel: View {
             .scrollIndicators(.hidden)
             .scrollTargetBehavior(.viewAligned)
             .scrollPosition(id: $page)
+            .scrollClipDisabled() // la sombra de las tarjetas no se corta en los bordes
             .contentMargins(.horizontal, 22)
             .padding(.horizontal, -16)
 
@@ -353,63 +355,88 @@ struct FeedCarousel: View {
 
     private var current: Feed? { page ?? slides.first?.feed }
 
-    /// Portada de la colección: fotos de sus productos difuminadas y teñidas con su color,
-    /// y encima una placa de cristal con el título y el acceso.
+    /// Portada de la colección al estilo de Apple Music: título grande en el centro,
+    /// el número de productos abajo a la izquierda y «Ver …» abajo a la derecha. Toda la tarjeta se toca.
     private func card(_ s: FeedSlide) -> some View {
-        let color = s.feed.coverColor
-        return NavigationLink(value: HomeRoute.feed(s.feed)) {
-            // El fondo va detrás de un hueco de tamaño fijo: las fotos «fill» no pueden agrandar la tarjeta.
+        NavigationLink(value: HomeRoute.feed(s.feed)) {
             Color.clear
                 .frame(maxWidth: .infinity)
                 .frame(height: 200)
-                .background { background(s, color) }
-                .overlay(alignment: .leading) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(s.count > 0 ? Count.items(s.count, "producto", "productos") : "Nada por ahora")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(Color.spSecondary)
+                .background { CoverBackground(feed: s.feed) }
+                .overlay {
                     Text(s.feed.title)
-                        .font(.title.bold())
-                        .foregroundStyle(Color.spInk)
-                        .lineLimit(1).minimumScaleFactor(0.7)
-                    Text("Ver \(s.feed.title.lowercased())")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Color.spOnInk)
-                        .padding(.horizontal, 14).frame(minHeight: 32)
-                        .background(Color.spInk, in: Capsule())
-                        .padding(.top, 6)
+                        .font(.largeTitle.bold())
+                        .multilineTextAlignment(.center)
+                        .lineLimit(1).minimumScaleFactor(0.6)
+                        .padding(.horizontal, 20)
                 }
-                .padding(16)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .padding(16)
+                .overlay {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Text("SHOP POST").font(.custom("Futura-Bold", size: 11, relativeTo: .caption2)).tracking(1.2)
+                                .accessibilityHidden(true)
+                        }
+                        Spacer()
+                        HStack(alignment: .firstTextBaseline) {
+                            Text(s.count > 0 ? Count.items(s.count, "producto", "productos") : "Nada por ahora")
+                                .font(.footnote.weight(.medium)).opacity(0.85)
+                            Spacer(minLength: 8)
+                            Text("Ver \(s.feed.title.lowercased())").font(.footnote.bold())
+                        }
+                    }
+                    .padding(16)
                 }
-            .clipShape(RoundedRectangle(cornerRadius: SPRadius.card, style: .continuous))
+                .foregroundStyle(Color.spInk)
+                .clipShape(RoundedRectangle(cornerRadius: SPRadius.card, style: .continuous))
+                .shadow(color: .black.opacity(0.08), radius: 12, y: 6)
         }
         .buttonStyle(PressableStyle())
     }
+}
 
-    /// Fondo: hasta 4 fotos en columnas, muy difuminadas, con un velo del color de la colección.
-    /// Sin fotos (colección vacía), un degradado de ese color.
-    @ViewBuilder private func background(_ s: FeedSlide, _ color: Color) -> some View {
-        if s.images.isEmpty {
-            LinearGradient(colors: [color.mix(with: .white, by: 0.35), color.mix(with: .black, by: 0.1)],
-                           startPoint: .topLeading, endPoint: .bottomTrailing)
-        } else {
-            HStack(spacing: 0) {
-                ForEach(s.images, id: \.self) { url in
-                    Color.white
-                        .overlay {
-                            AsyncImage(url: url) { phase in
-                                if let img = phase.image { img.resizable().scaledToFill() } else { Color.white }
-                            }
-                        }
-                        .clipped()
-                }
+/// Fondo vivo de la portada: en modo claro, malla pastel sobre blanco; en oscuro, negro con halos de luz.
+/// Los colores se desplazan despacio (se para si el usuario reduce el movimiento).
+struct CoverBackground: View {
+    let feed: Feed
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1 / 30, paused: reduceMotion)) { ctx in
+            let t = ctx.date.timeIntervalSinceReferenceDate
+            if scheme == .dark { halos(t) } else { pastel(t) }
+        }
+    }
+
+    private func pastel(_ t: Double) -> some View {
+        let c = feed.coverPalette
+        let cx = Float(0.5 + 0.18 * sin(t * 0.35)), cy = Float(0.5 + 0.14 * cos(t * 0.27))
+        let top = Float(0.5 + 0.12 * sin(t * 0.22)), bottom = Float(0.5 + 0.12 * cos(t * 0.31))
+        return MeshGradient(width: 3, height: 3, points: [
+            [0, 0], [top, 0], [1, 0],
+            [0, Float(0.5 + 0.1 * cos(t * 0.29))], [cx, cy], [1, Float(0.5 + 0.1 * sin(t * 0.33))],
+            [0, 1], [bottom, 1], [1, 1],
+        ], colors: [
+            .white, c.light.opacity(0.45), .white,
+            c.mid.opacity(0.35), .white, c.light.opacity(0.5),
+            .white, c.mid.opacity(0.3), .white,
+        ])
+        .background(.white)
+    }
+
+    private func halos(_ t: Double) -> some View {
+        let c = feed.coverPalette
+        return GeometryReader { geo in
+            let w = geo.size.width, h = geo.size.height
+            ZStack {
+                Color.black
+                Circle().fill(c.mid).frame(width: w * 0.7).blur(radius: 60)
+                    .offset(x: w * (-0.2 + 0.08 * sin(t * 0.3)), y: h * (0.3 + 0.1 * cos(t * 0.25)))
+                Circle().fill(c.light).frame(width: w * 0.45).blur(radius: 50)
+                    .offset(x: w * (0.3 + 0.08 * cos(t * 0.27)), y: h * (-0.25 + 0.1 * sin(t * 0.33)))
             }
-            .background(Color.white)
-            .compositingGroup()
-            .blur(radius: 34, opaque: true)
-            .overlay(color.opacity(0.38))
+            .frame(width: w, height: h)
         }
     }
 }
