@@ -16,20 +16,20 @@ struct RootView: View {
         TabView(selection: selection) {
             Tab(value: AppTab.home) {
                 NavigationStack { HomeView() }
-            } label: { tabLabel("Inicio", "circle.grid.2x2") }
-            Tab(value: AppTab.catalog) {
-                NavigationStack { CatalogView() }
-            } label: { tabLabel("Catálogo", "tag") }
+            } label: { tabLabel("Inicio", "square.on.square") }
+            Tab(value: AppTab.pantry) {
+                NavigationStack { PantryView() }
+            } label: { tabLabel("Despensa", "line.3.horizontal") }
             Tab(value: AppTab.add) {
                 Color.spBackground
             } label: { tabLabel("Añadir", "plus.circle") }
+            Tab(value: AppTab.catalog) {
+                NavigationStack { CatalogView() }
+            } label: { tabLabel("Catálogo", "square.text.square") }
             Tab(value: AppTab.basket) {
                 NavigationStack { BasketView() }
             } label: { tabLabel("Cesta", "bag") }
             .badge(basketPending)
-            Tab(value: AppTab.pantry) {
-                NavigationStack { PantryView() }
-            } label: { tabLabel("Despensa", "archivebox") }
         }
         .overlay(alignment: .top) {
             if let toast = shop.toast {
