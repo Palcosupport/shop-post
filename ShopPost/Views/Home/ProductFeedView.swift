@@ -9,6 +9,7 @@ struct ProductFeedView: View {
     @State private var drops = true
     @State private var query = ""
     @State private var limit = 60
+    @State private var sort: FeedSort = .relevance
 
     private var storeSet: Set<String>? {
         store == "all" ? Set(prefs.visibleStores(in: catalog).map(\.id)) : [store]
@@ -24,7 +25,7 @@ struct ProductFeedView: View {
         }
         let terms = Text2.normalize(query).split(separator: " ").map(String.init)
         if !terms.isEmpty { list = list.filter { p in terms.allSatisfy { p.key.contains($0) } } }
-        return list
+        return sort.apply(list)
     }
 
     var body: some View {
@@ -39,7 +40,16 @@ struct ProductFeedView: View {
                             selection: $store, brand: { BrandStyle.store($0) })
                 }
                 if all.isEmpty {
-                    EmptyCard(title: emptyTitle, message: emptyMessage)
+                    // Va dentro del contenido (no encima): se mueve a la vez que el buscador y las etiquetas, sin saltos.
+                    VStack(spacing: 8) {
+                        Text(emptyTitle).font(.spHeadline)
+                        Text(emptyMessage).font(.spSub).foregroundStyle(Color.spSecondary)
+                    }
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+                    .frame(maxWidth: .infinity)
+                    // Distancia fija bajo las etiquetas: así se mueve con ellas, sin recolocarse.
+                    .padding(.top, 220)
                 } else {
                     ProductCollection(products: Array(all.prefix(limit)), grid: prefs.gridView, showStore: store == "all")
                     if all.count > limit {
@@ -54,12 +64,27 @@ struct ProductFeedView: View {
         .spScreen()
         .navigationTitle(feed.title)
         .navigationSubtitle(Count.items(all.count, "producto", "productos"))
-        .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Buscar en \(feed.title.lowercased())")
+        // Buscador nativo bajo el título: se esconde al desplazar, como en WhatsApp.
+        .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Buscar en \(feed.title.lowercased())")
+        // Pantalla de detalle: sin barra de pestañas, para dejar todo el alto a los productos.
+        .toolbar(.hidden, for: .tabBar)
         .toolbar {
+            // Filtro: cómo se ve la lista y en qué orden.
             ToolbarItem(placement: .topBarTrailing) {
-                Button { prefs.gridView.toggle() } label: {
-                    Image(systemName: prefs.gridView ? "list.bullet" : "square.grid.2x2")
+                Menu {
+                    Picker("Vista", selection: Bindable(prefs).gridView) {
+                        Label("Cuadrícula", systemImage: "square.grid.2x2").tag(true)
+                        Label("Lista", systemImage: "list.bullet").tag(false)
+                    }
+                    .pickerStyle(.inline)
+                    Picker("Ordenar por", selection: $sort.animation(.snappy)) {
+                        ForEach(FeedSort.allCases) { Label($0.title, systemImage: $0.icon).tag($0) }
+                    }
+                    .pickerStyle(.inline)
+                } label: {
+                    Image(systemName: "line.3.horizontal.decrease")
                 }
+                .accessibilityLabel("Filtrar y ordenar")
             }
         }
     }
@@ -79,6 +104,53 @@ struct ProductFeedView: View {
         case .new: "Aquí verás los productos que los supermercados añadan a su catálogo."
         case .offers: "No hay ofertas para estos supermercados ahora mismo."
         }
+    }
+}
+
+/// Orden de los productos en las listas de Ofertas, Cambios, Novedades y Favoritos.
+enum FeedSort: String, CaseIterable, Identifiable {
+    case relevance, priceAsc, priceDesc, unitPrice, discount, name
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .relevance: "Relevancia"
+        case .priceAsc: "Precio: de menor a mayor"
+        case .priceDesc: "Precio: de mayor a menor"
+        case .unitPrice: "Precio por kilo o litro"
+        case .discount: "Mayor descuento"
+        case .name: "Nombre (A–Z)"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .relevance: "sparkles"
+        case .priceAsc: "arrow.up"
+        case .priceDesc: "arrow.down"
+        case .unitPrice: "scalemass"
+        case .discount: "percent"
+        case .name: "textformat"
+        }
+    }
+
+    /// «Relevancia» deja el orden en que llega cada lista (el que ya tenía).
+    func apply(_ list: [Product]) -> [Product] {
+        switch self {
+        case .relevance: list
+        case .priceAsc: list.sorted { $0.price < $1.price }
+        case .priceDesc: list.sorted { $0.price > $1.price }
+        // Los que no tienen precio por unidad van al final.
+        case .unitPrice: list.sorted { ($0.unitPrice ?? .infinity) < ($1.unitPrice ?? .infinity) }
+        case .discount: list.sorted { Self.discount($0) > Self.discount($1) }
+        case .name: list.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        }
+    }
+
+    /// Descuento en tanto por uno: precio tachado frente al actual (0 si no tiene).
+    private static func discount(_ p: Product) -> Double {
+        guard let old = p.strikePrice, old > 0 else { return 0 }
+        return (old - p.price) / old
     }
 }
 
