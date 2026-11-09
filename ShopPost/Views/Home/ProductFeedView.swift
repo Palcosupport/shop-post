@@ -10,6 +10,11 @@ struct ProductFeedView: View {
     @State private var query = ""
     @State private var limit = 60
     @State private var sort: FeedSort = .relevance
+    /// Borde inferior de las etiquetas y de la lista en pantalla: sirven para centrar el aviso de lista vacía.
+    /// Se miden mientras se abre la pantalla y se fijan al terminar, para que luego el aviso se mueva con las etiquetas.
+    @State private var chipsBottom: CGFloat = 0
+    @State private var listBottom: CGFloat = 0
+    @State private var measuring = true
 
     private var storeSet: Set<String>? {
         store == "all" ? Set(prefs.visibleStores(in: catalog).map(\.id)) : [store]
@@ -32,12 +37,17 @@ struct ProductFeedView: View {
         let all = products
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                if feed == .changes {
-                    ChipBar(items: [(true, "Bajadas", "↓"), (false, "Subidas", "↑")], selection: $drops)
+                VStack(alignment: .leading, spacing: 14) {
+                    if feed == .changes {
+                        ChipBar(items: [(true, "Bajadas", "↓"), (false, "Subidas", "↑")], selection: $drops)
+                    }
+                    if prefs.visibleStores(in: catalog).count > 1 {
+                        ChipBar(items: [("all", "Todos", nil)] + prefs.visibleStores(in: catalog).map { ($0.id, $0.name, nil) },
+                                selection: $store, brand: { BrandStyle.store($0) })
+                    }
                 }
-                if prefs.visibleStores(in: catalog).count > 1 {
-                    ChipBar(items: [("all", "Todos", nil)] + prefs.visibleStores(in: catalog).map { ($0.id, $0.name, nil) },
-                            selection: $store, brand: { BrandStyle.store($0) })
+                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxY } action: { y in
+                    if measuring { chipsBottom = y }
                 }
                 if all.isEmpty {
                     // Va dentro del contenido (no encima): se mueve a la vez que el buscador y las etiquetas, sin saltos.
@@ -47,9 +57,10 @@ struct ProductFeedView: View {
                     }
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
+                    // Centrado en el hueco que queda bajo las etiquetas. El alto se toma al abrir la pantalla
+                    // y no cambia después: así el aviso se mueve junto a las etiquetas, sin recolocarse.
                     .frame(maxWidth: .infinity)
-                    // Distancia fija bajo las etiquetas: así se mueve con ellas, sin recolocarse.
-                    .padding(.top, 220)
+                    .frame(height: max(160, listBottom - Self.bottomInset - chipsBottom - 14))
                 } else {
                     ProductCollection(products: Array(all.prefix(limit)), grid: prefs.gridView, showStore: store == "all")
                     if all.count > limit {
@@ -58,7 +69,15 @@ struct ProductFeedView: View {
                 }
             }
             .padding(.horizontal, 16)
+            .padding(.top, Self.topGap)
             .padding(.bottom, tabBarClearance)
+        }
+        .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxY } action: { y in
+            if measuring { listBottom = y }
+        }
+        .task {
+            try? await Task.sleep(for: .milliseconds(600))
+            measuring = false
         }
         .scrollDismissesKeyboard(.immediately)
         .spScreen()
@@ -82,11 +101,22 @@ struct ProductFeedView: View {
                     }
                     .pickerStyle(.inline)
                 } label: {
-                    Image(systemName: "line.3.horizontal.decrease")
+                    // Mismo tamaño que el filtro de la app Teléfono.
+                    // La barra ignora .font en los iconos: el símbolo va ya configurado a su tamaño.
+                    Image(uiImage: UIImage(systemName: "line.3.horizontal.decrease",
+                                           withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .regular)) ?? UIImage())
+                        .renderingMode(.template)
                 }
                 .accessibilityLabel("Filtrar y ordenar")
             }
         }
+    }
+
+    /// Aire entre los botones (o el buscador) y las etiquetas.
+    private static let topGap: CGFloat = 10
+    /// Zona de la barrita de inicio, que no cuenta para centrar.
+    private static var bottomInset: CGFloat {
+        UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.keyWindow }.first?.safeAreaInsets.bottom ?? 34
     }
 
     private var emptyTitle: String {
