@@ -46,8 +46,6 @@ struct HomeView: View {
     @Environment(Preferences.self) private var prefs
     @State private var storeFilter = "all"
     @State private var showProfile = false
-    /// Ancho útil de «Tus supermercados» (para repartir los círculos).
-    @State private var storesWidth: CGFloat = 370
 
     private var storeSet: Set<String>? {
         storeFilter == "all" ? Set(prefs.visibleStores(in: catalog).map(\.id)) : [storeFilter]
@@ -199,24 +197,21 @@ struct HomeView: View {
         if stores.count > 1 {
             VStack(alignment: .leading, spacing: 14) {
                 SectionHeader(title: "Tus supermercados", actionTitle: "Ver todo") { shop.tab = .catalog }
-                    // El título ocupa justo el ancho útil: de ahí se saca el tamaño de los círculos.
-                    .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { storesWidth = $0 }
-                // Si caben todos, se reparte el ancho entero; si no, se ve medio supermercado más (como en iOS).
+                // El elegido se abre en cápsula con su nombre; el resto son círculos.
                 // «Todos» y «Favoritos» van delante de los supermercados.
-                let item = StoreCircle.width(in: storesWidth, count: stores.count + 2)
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: 0) {
+                    HStack(spacing: 10) {
                         Button { select("all") } label: {
-                            StoreCircle(storeId: nil, icon: "square.grid.2x2", title: "Todos", selected: storeFilter == "all", width: item)
+                            StoreCircle(storeId: nil, icon: "square.grid.2x2", title: "Todos", selected: storeFilter == "all")
                         }
                         .buttonStyle(PressableStyle())
                         NavigationLink(value: HomeRoute.feed(.favorites)) {
-                            StoreCircle(storeId: nil, icon: "star", title: "Favoritos", selected: false, width: item)
+                            StoreCircle(storeId: nil, icon: "star", title: "Favoritos", selected: false)
                         }
                         .buttonStyle(PressableStyle())
                         ForEach(stores, id: \.id) { st in
                             Button { select(st.id) } label: {
-                                StoreCircle(storeId: st.id, title: st.name, selected: storeFilter == st.id, width: item)
+                                StoreCircle(storeId: st.id, title: st.name, selected: storeFilter == st.id)
                             }
                             .buttonStyle(PressableStyle())
                         }
@@ -441,59 +436,59 @@ struct CoverBackground: View {
     }
 }
 
-/// Supermercado en círculo (con su color de marca); el elegido lleva un aro alrededor.
+/// Supermercado en círculo (con su color de marca). El elegido se abre en una cápsula
+/// del color de la marca con su nombre («Todos» usa el color de acento).
 struct StoreCircle: View {
     let storeId: String?
     /// Icono para los círculos que no son un supermercado (Todos, Favoritos).
     var icon: String = "square.grid.2x2"
     let title: String
     let selected: Bool
-    /// Hueco que ocupa (lo calcula `width(in:count:)`).
-    var width: CGFloat = 74
 
-    /// Ancho mínimo de cada supermercado: tamaño cómodo; si no caben todos, el resto se ve deslizando.
-    static let minWidth: CGFloat = 80
-
-    /// Ancho de cada hueco: el ancho entero repartido si caben todos; si no, los que quepan más medio.
-    /// `w` es el ancho útil (la pantalla sin los márgenes).
-    static func width(in w: CGFloat, count n: Int) -> CGFloat {
-        if CGFloat(n) * minWidth <= w { return w / CGFloat(n) }
-        let shown = max(1, (w / minWidth - 0.5).rounded(.down))
-        return w / (shown + 0.5)
-    }
+    private var brand: BrandStyle? { BrandStyle.store(storeId) }
+    /// Color de la cápsula elegida y del texto encima.
+    private var fill: Color { brand?.background ?? .spAccent }
+    private var onFill: Color { brand?.foreground ?? .white }
 
     var body: some View {
-        VStack(spacing: 7) {
-            // El círculo crece con el hueco (proporcional al ancho del dispositivo), con un tope.
-            circle(diameter)
-                .padding(4)
-                .overlay(Circle().strokeBorder(selected ? ring : .clear, lineWidth: 2.5))
-            Text(title)
-                .font(.caption.weight(selected ? .semibold : .regular))
-                .foregroundStyle(selected ? Color.spInk : Color.spSecondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
+        HStack(spacing: 8) {
+            if selected {
+                symbol(size: 40, color: onFill)
+                    .background(Color.white.opacity(0.22), in: Circle())
+                Text(title)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(onFill)
+                    .lineLimit(1)
+                    .fixedSize()
+                    .transition(.opacity.combined(with: .scale(scale: 0.8, anchor: .leading)))
+            } else if storeId != nil {
+                StoreBadge(storeId: storeId, size: 52)
+            } else {
+                symbol(size: 52, color: .spInk)
+                    .background(Color.spChip, in: Circle())
+            }
         }
-        .frame(width: width)
-        .contentShape(Rectangle())
+        .padding(.leading, selected ? 6 : 0)
+        .padding(.trailing, selected ? 16 : 0)
+        .frame(height: 52)
+        .background(selected ? fill : .clear, in: Capsule())
+        .contentShape(Capsule())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(title)
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
-    private var diameter: CGFloat { min(max(width - 22, 44), 64) }
-
-    @ViewBuilder private func circle(_ d: CGFloat) -> some View {
-        if let storeId {
-            StoreBadge(storeId: storeId, size: d)
-        } else {
-            Image(systemName: icon)
-                .font(.system(size: d * 0.4, weight: .medium))
-                .foregroundStyle(Color.spInk)
-                .frame(width: d, height: d)
-                .background(Color.spChip, in: Circle())
+    /// Letra del supermercado o icono (Todos, Favoritos), sin fondo.
+    @ViewBuilder private func symbol(size d: CGFloat, color: Color) -> some View {
+        Group {
+            if storeId != nil {
+                Text(String(title.prefix(1)).uppercased())
+                    .font(.system(size: d * 0.48, weight: .bold, design: .rounded))
+            } else {
+                Image(systemName: icon).font(.system(size: d * 0.4, weight: .medium))
+            }
         }
+        .foregroundStyle(color)
+        .frame(width: d, height: d)
     }
-
-    private var ring: Color { BrandStyle.store(storeId)?.background ?? .spInk }
 }
