@@ -1,6 +1,6 @@
 {
  "version": 1,
- "updatedAt": "2026-11-11T11:58:34.031567+00:00",
+ "updatedAt": "2026-11-12T08:00:07.678627+00:00",
  "baseline": {
   "mercadona": "2026-11-07",
   "consum": "2026-11-07",
@@ -36,10 +36,10 @@
    "color": "#E30613",
    "web": "https://supermercado.eroski.es",
    "status": "ok",
-   "count": 24571,
-   "updatedAt": "2026-11-11T08:00:07.739288+00:00",
-   "checkedAt": "2026-11-11T08:00:07.739288+00:00",
-   "seconds": 3622.2
+   "count": 24570,
+   "updatedAt": "2026-11-12T08:00:07.678627+00:00",
+   "checkedAt": "2026-11-12T08:00:07.678627+00:00",
+   "seconds": 4194.7
   },
   {
    "id": "lidl",
