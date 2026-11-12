@@ -1,6 +1,6 @@
 {
  "version": 1,
- "updatedAt": "2026-11-12T08:00:07.678627+00:00",
+ "updatedAt": "2026-11-12T12:59:11.930593+00:00",
  "baseline": {
   "mercadona": "2026-11-07",
   "consum": "2026-11-07",
@@ -14,10 +14,10 @@
    "color": "#00A650",
    "web": "https://tienda.mercadona.es",
    "status": "ok",
-   "count": 4339,
-   "updatedAt": "2026-11-11T11:58:34.031567+00:00",
-   "checkedAt": "2026-11-11T11:58:34.031567+00:00",
-   "seconds": 1040.8
+   "count": 4337,
+   "updatedAt": "2026-11-12T12:59:11.930593+00:00",
+   "checkedAt": "2026-11-12T12:59:11.930593+00:00",
+   "seconds": 954.2
   },
   {
    "id": "consum",
@@ -25,10 +25,10 @@
    "color": "#FF6A13",
    "web": "https://tienda.consum.es",
    "status": "ok",
-   "count": 9357,
-   "updatedAt": "2026-11-11T11:58:34.031567+00:00",
-   "checkedAt": "2026-11-11T11:58:34.031567+00:00",
-   "seconds": 136.9
+   "count": 9361,
+   "updatedAt": "2026-11-12T12:59:11.930593+00:00",
+   "checkedAt": "2026-11-12T12:59:11.930593+00:00",
+   "seconds": 130.3
   },
   {
    "id": "eroski",
@@ -47,10 +47,10 @@
    "color": "#0050AA",
    "web": "https://www.lidl.es",
    "status": "ok",
-   "count": 163,
-   "updatedAt": "2026-11-11T11:58:34.031567+00:00",
-   "checkedAt": "2026-11-11T11:58:34.031567+00:00",
-   "seconds": 247.9
+   "count": 167,
+   "updatedAt": "2026-11-12T12:59:11.930593+00:00",
+   "checkedAt": "2026-11-12T12:59:11.930593+00:00",
+   "seconds": 237.6
   }
  ],
  "categories": [
